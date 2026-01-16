@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="OSRP - Complete multi-modal mobile sensing for academic research. Built for AWS. Open source.">
+    <meta name="keywords" content="mobile sensing, digital phenotyping, AWS, research platform, behavioral research, wearables">
+    <title>OSRP - Open Sensing Research Platform</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <div class="nav-brand">
+                <span class="logo">OSRP</span>
+            </div>
+            <div class="nav-links">
+                <a href="#features">Features</a>
+                <a href="#why-osrp">Why OSRP</a>
+                <a href="#comparison">Compare</a>
+                <a href="#docs">Docs</a>
+                <a href="https://github.com/open-sensor-research-platform/osrp" target="_blank" class="btn-secondary">GitHub</a>
+                <a href="../GETTING_STARTED.md" class="btn-primary">Get Started</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="container">
+            <div class="hero-content">
+                <h1 class="hero-title">OSRP</h1>
+                <h2 class="hero-subtitle">Open Sensing Research Platform</h2>
+                <p class="hero-description">
+                    Complete multi-modal mobile sensing for academic research.<br>
+                    Built for AWS. Open source.
+                </p>
+                <div class="hero-cta">
+                    <a href="../GETTING_STARTED.md" class="btn-large btn-primary">Get Started</a>
+                    <a href="https://github.com/open-sensor-research-platform/osrp" class="btn-large btn-secondary" target="_blank">View on GitHub</a>
+                </div>
+                <p class="hero-note">
+                    OSRP combines screenshots, sensors, and wearables into one comprehensive platform for digital phenotyping and behavioral research.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Start -->
+    <section class="quick-start">
+        <div class="container">
+            <h2>5-Minute Quick Start</h2>
+            <div class="code-block">
+                <pre><code># Install OSRP
+pip install osrp
+
+# Initialize study
+osrp init my-study
+
+# Deploy to AWS
+osrp deploy --aws
+
+# Start analyzing
+osrp notebooks</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Grid -->
+    <section id="features" class="features">
+        <div class="container">
+            <h2>Key Features</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">📸</div>
+                    <h3>Screenshot Capture</h3>
+                    <p>Behavioral observation - see what apps participants use and what content they view</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📱</div>
+                    <h3>Built-in Sensors</h3>
+                    <p>Accelerometer, GPS, gyroscope, activity recognition, device state monitoring</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">⌚</div>
+                    <h3>Wearable Integration</h3>
+                    <p>Google Fit, Bluetooth heart rate monitors, fitness trackers</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📋</div>
+                    <h3>Experience Sampling</h3>
+                    <p>Context-aware surveys and EMAs delivered at the right moment</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">☁️</div>
+                    <h3>AWS-Native</h3>
+                    <p>DynamoDB, S3, Lambda, SageMaker - enterprise-grade infrastructure</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📊</div>
+                    <h3>Marimo Analysis</h3>
+                    <p>Reactive, reproducible notebooks better than Jupyter</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Why OSRP -->
+    <section id="why-osrp" class="why-osrp">
+        <div class="container">
+            <h2>Why OSRP?</h2>
+            <div class="benefits-grid">
+                <div class="benefits-column">
+                    <h3>For Universities</h3>
+                    <ul class="benefits-list">
+                        <li>
+                            <strong>Existing Infrastructure</strong>
+                            <span>Runs on AWS infrastructure you already have</span>
+                        </li>
+                        <li>
+                            <strong>HIPAA Compliant</strong>
+                            <span>Built-in compliance for health research</span>
+                        </li>
+                        <li>
+                            <strong>No Vendor Lock-In</strong>
+                            <span>Open source, full data ownership</span>
+                        </li>
+                        <li>
+                            <strong>Cost Effective</strong>
+                            <span>~$5 per participant per month</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="benefits-column">
+                    <h3>For Researchers</h3>
+                    <ul class="benefits-list">
+                        <li>
+                            <strong>Multi-Modal Data</strong>
+                            <span>All data streams temporally aligned</span>
+                        </li>
+                        <li>
+                            <strong>Configurable</strong>
+                            <span>Enable/disable modules per study</span>
+                        </li>
+                        <li>
+                            <strong>Rich Context</strong>
+                            <span>Behavioral + physiological + environmental</span>
+                        </li>
+                        <li>
+                            <strong>Integrated Analysis</strong>
+                            <span>Marimo notebooks included</span>
+                        </li>
+                        <li>
+                            <strong>Publication Ready</strong>
+                            <span>ML pipelines and reproducible workflows</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Comparison Table -->
+    <section id="comparison" class="comparison">
+        <div class="container">
+            <h2>Platform Comparison</h2>
+            <p class="comparison-subtitle">OSRP is the only platform with all modalities + AWS + integrated analysis</p>
+            <div class="table-wrapper">
+                <table class="comparison-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>AWARE</th>
+                            <th>Screenomics</th>
+                            <th>Centralive</th>
+                            <th>LAMP</th>
+                            <th>Beiwe</th>
+                            <th class="highlight">OSRP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Screenshots</strong></td>
+                            <td>❌</td>
+                            <td>✅</td>
+                            <td>❌</td>
+                            <td>❌</td>
+                            <td>❌</td>
+                            <td class="highlight">✅</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sensors</strong></td>
+                            <td>✅</td>
+                            <td>❌</td>
+                            <td>⚠️</td>
+                            <td>✅</td>
+                            <td>✅</td>
+                            <td class="highlight">✅</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Wearables</strong></td>
+                            <td>❌</td>
+                            <td>❌</td>
+                            <td>✅</td>
+                            <td>⚠️</td>
+                            <td>❌</td>
+                            <td class="highlight">✅</td>
+                        </tr>
+                        <tr>
+                            <td><strong>EMA System</strong></td>
+                            <td>⚠️</td>
+                            <td>❌</td>
+                            <td>✅</td>
+                            <td>✅</td>
+                            <td>✅</td>
+                            <td class="highlight">✅</td>
+                        </tr>
+                        <tr>
+                            <td><strong>AWS Native</strong></td>
+                            <td>❌</td>
+                            <td>❌</td>
+                            <td>❌</td>
+                            <td>❌</td>
+                            <td>❌</td>
+                            <td class="highlight">✅</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Analysis Tools</strong></td>
+                            <td>❌</td>
+                            <td>⚠️</td>
+                            <td>⚠️</td>
+                            <td>⚠️</td>
+                            <td>❌</td>
+                            <td class="highlight">✅✅</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Marimo Notebooks</strong></td>
+                            <td>❌</td>
+                            <td>❌</td>
+                            <td>❌</td>
+                            <td>❌</td>
+                            <td>❌</td>
+                            <td class="highlight">✅</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Open Source</strong></td>
+                            <td>✅</td>
+                            <td>✅</td>
+                            <td>❌</td>
+                            <td>✅</td>
+                            <td>✅</td>
+                            <td class="highlight">✅</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cost/participant/mo</strong></td>
+                            <td>Varies</td>
+                            <td>Varies</td>
+                            <td>$20-50</td>
+                            <td>Varies</td>
+                            <td>Varies</td>
+                            <td class="highlight">~$5</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </section>
+
+    <!-- Use Cases -->
+    <section class="use-cases">
+        <div class="container">
+            <h2>Use Cases</h2>
+            <div class="use-cases-grid">
+                <div class="use-case-card">
+                    <h3>🧠 Digital Phenotyping</h3>
+                    <ul>
+                        <li>Depression and anxiety monitoring</li>
+                        <li>Bipolar disorder tracking</li>
+                        <li>Sleep and circadian rhythms</li>
+                        <li>Stress and burnout assessment</li>
+                    </ul>
+                </div>
+                <div class="use-case-card">
+                    <h3>📱 Behavioral Research</h3>
+                    <ul>
+                        <li>Social media impact studies</li>
+                        <li>Screen time and wellbeing</li>
+                        <li>App usage patterns</li>
+                        <li>Digital intervention effectiveness</li>
+                    </ul>
+                </div>
+                <div class="use-case-card">
+                    <h3>🏃 Multi-Modal Studies</h3>
+                    <ul>
+                        <li>Physical activity and mental health</li>
+                        <li>Sleep quality and performance</li>
+                        <li>Heart rate variability and stress</li>
+                        <li>Location and social behavior</li>
+                    </ul>
+                </div>
+                <div class="use-case-card">
+                    <h3>📈 Machine Learning</h3>
+                    <ul>
+                        <li>Stress prediction models</li>
+                        <li>Activity classification</li>
+                        <li>Intervention timing optimization</li>
+                        <li>Relapse prediction</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Code Example -->
+    <section class="code-example">
+        <div class="container">
+            <h2>Simple, Powerful API</h2>
+            <div class="code-block">
+                <pre><code>from osrp import OSRPData
+
+# Initialize
+data = OSRPData(region='us-west-2')
+
+# Get complete daily summary
+daily = data.get_daily_summary('participant001', date)
+
+# Access individual streams
+screenshots = daily['screenshots']
+heart_rate = daily['heart_rate']
+activity = daily['activity']
+
+# Align multi-modal data
+aligned = data.align_multi_modal({
+    'screenshots': screenshots,
+    'hr': heart_rate,
+    'activity': activity
+}, freq='5min')</code></pre>
+            </div>
+        </div>
+    </section>
+
+    <!-- Documentation -->
+    <section id="docs" class="documentation">
+        <div class="container">
+            <h2>Documentation</h2>
+            <div class="docs-grid">
+                <a href="../GETTING_STARTED.md" class="doc-card">
+                    <h3>Getting Started</h3>
+                    <p>15-minute setup guide</p>
+                </a>
+                <a href="../docs/PROJECT_BRIEF.md" class="doc-card">
+                    <h3>Project Brief</h3>
+                    <p>Overview and objectives</p>
+                </a>
+                <a href="../docs/TECHNICAL_SPECIFICATION.md" class="doc-card">
+                    <h3>Technical Specification</h3>
+                    <p>Architecture details</p>
+                </a>
+                <a href="../docs/IMPLEMENTATION_PLAN.md" class="doc-card">
+                    <h3>Implementation Plan</h3>
+                    <p>Week-by-week guide</p>
+                </a>
+                <a href="../QUICK_START.md" class="doc-card">
+                    <h3>Quick Start</h3>
+                    <p>5-minute tutorial</p>
+                </a>
+                <a href="https://github.com/open-sensor-research-platform/osrp" class="doc-card" target="_blank">
+                    <h3>GitHub Repository</h3>
+                    <p>Source code and examples</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="container">
+            <h2>Ready to Get Started?</h2>
+            <p>Join leading research institutions using OSRP for digital phenotyping studies</p>
+            <div class="cta-buttons">
+                <a href="../GETTING_STARTED.md" class="btn-large btn-primary">Get Started</a>
+                <a href="https://github.com/open-sensor-research-platform/osrp" class="btn-large btn-secondary" target="_blank">Star on GitHub</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h4>OSRP</h4>
+                    <p>Open Sensing Research Platform</p>
+                    <p class="footer-copyright">© 2026 Scott Friedman and OSRP Contributors</p>
+                </div>
+                <div class="footer-section">
+                    <h4>Resources</h4>
+                    <ul>
+                        <li><a href="../README.md">Documentation</a></li>
+                        <li><a href="https://github.com/open-sensor-research-platform/osrp" target="_blank">GitHub</a></li>
+                        <li><a href="https://github.com/open-sensor-research-platform/osrp/issues" target="_blank">Issues</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Community</h4>
+                    <ul>
+                        <li><a href="https://github.com/open-sensor-research-platform/osrp/discussions" target="_blank">Discussions</a></li>
+                        <li><a href="../LICENSE">License (Apache 2.0)</a></li>
+                        <li><a href="../CHANGELOG.md">Changelog</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h4>Citation</h4>
+                    <p class="citation-text">
+                        If you use OSRP in your research, please cite it in your publications.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
