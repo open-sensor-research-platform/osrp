@@ -11,6 +11,8 @@ import io.osrp.app.data.repository.AuthRepository
 import io.osrp.app.databinding.ActivityMainBinding
 import io.osrp.app.sensors.SensorCollectionService
 import io.osrp.app.ui.auth.LoginActivity
+import io.osrp.app.upload.UploadScheduler
+import io.osrp.app.util.PreferencesManager
 
 /**
  * Main Activity
@@ -21,12 +23,16 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var authRepository: AuthRepository
+    private lateinit var uploadScheduler: UploadScheduler
+    private lateinit var preferencesManager: PreferencesManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Initialize AuthRepository
+        // Initialize repositories and managers
         authRepository = AuthRepository(applicationContext)
+        uploadScheduler = UploadScheduler(applicationContext)
+        preferencesManager = PreferencesManager(applicationContext)
 
         // Check if user is logged in
         if (!authRepository.isLoggedIn()) {
@@ -60,6 +66,15 @@ class MainActivity : AppCompatActivity() {
 
         binding.stopSensorButton.setOnClickListener {
             stopSensorCollection()
+        }
+
+        // Add buttons for data upload
+        binding.uploadNowButton.setOnClickListener {
+            uploadNow()
+        }
+
+        binding.scheduleUploadButton.setOnClickListener {
+            schedulePeriodicUpload()
         }
     }
 
@@ -99,5 +114,42 @@ class MainActivity : AppCompatActivity() {
     private fun stopSensorCollection() {
         SensorCollectionService.stopCollection(this)
         Toast.makeText(this, "Stopped sensor collection", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun uploadNow() {
+        val wifiOnly = preferencesManager.uploadWifiOnly
+        val requiresCharging = preferencesManager.uploadRequiresCharging
+
+        uploadScheduler.scheduleImmediateUpload(
+            wifiOnly = wifiOnly,
+            requiresCharging = requiresCharging
+        )
+
+        val message = if (wifiOnly) {
+            "Upload scheduled (WiFi only)"
+        } else {
+            "Upload scheduled"
+        }
+        Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    private fun schedulePeriodicUpload() {
+        val intervalMinutes = preferencesManager.uploadIntervalMinutes
+        val wifiOnly = preferencesManager.uploadWifiOnly
+        val requiresCharging = preferencesManager.uploadRequiresCharging
+
+        uploadScheduler.schedulePeriodicUpload(
+            intervalMinutes = intervalMinutes,
+            wifiOnly = wifiOnly,
+            requiresCharging = requiresCharging
+        )
+
+        preferencesManager.autoUploadEnabled = true
+
+        Toast.makeText(
+            this,
+            "Scheduled upload every $intervalMinutes minutes",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }
