@@ -1,9 +1,12 @@
 package io.osrp.app.data.repository
 
+import android.content.Context
 import io.osrp.app.data.Result
+import io.osrp.app.data.local.SecureTokenStorage
 import io.osrp.app.data.remote.LoginRequest
 import io.osrp.app.data.remote.LoginResponse
 import io.osrp.app.data.remote.OSRPApiService
+import io.osrp.app.data.remote.RefreshTokenRequest
 import io.osrp.app.data.remote.RegisterRequest
 import io.osrp.app.data.remote.RegisterResponse
 import io.osrp.app.data.remote.RetrofitClient
@@ -12,10 +15,12 @@ import kotlinx.coroutines.withContext
 
 /**
  * Repository for authentication operations
- * Handles user registration, login, and token management
+ * Handles user registration, login, token management, and logout
  */
 class AuthRepository(
-    private val apiService: OSRPApiService = RetrofitClient.apiService
+    context: Context,
+    private val apiService: OSRPApiService = RetrofitClient.apiService,
+    private val tokenStorage: SecureTokenStorage = SecureTokenStorage(context)
 ) {
 
     /**
@@ -42,7 +47,7 @@ class AuthRepository(
     }
 
     /**
-     * Login user and get tokens
+     * Login user and store tokens securely
      */
     suspend fun login(
         email: String,
@@ -53,7 +58,20 @@ class AuthRepository(
             val response = apiService.login(request)
 
             if (response.isSuccessful && response.body() != null) {
-                Result.Success(response.body()!!)
+                val loginResponse = response.body()!!
+
+                // Save tokens securely
+                tokenStorage.saveTokens(
+                    accessToken = loginResponse.accessToken,
+                    idToken = loginResponse.idToken,
+                    refreshToken = loginResponse.refreshToken,
+                    expiresIn = loginResponse.expiresIn
+                )
+
+                // Save user email for convenience
+                tokenStorage.saveUserEmail(email)
+
+                Result.Success(loginResponse)
             } else {
                 Result.Error(Exception("Login failed: ${response.message()}"))
             }
@@ -63,34 +81,85 @@ class AuthRepository(
     }
 
     /**
-     * Save tokens to local storage
-     * TODO: Implement with DataStore or EncryptedSharedPreferences
+     * Refresh tokens if expired
+     * Returns true if refresh was successful or not needed
      */
-    suspend fun saveTokens(loginResponse: LoginResponse) {
-        // TODO: Save tokens securely
+    suspend fun refreshTokenIfNeeded(): Boolean = withContext(Dispatchers.IO) {
+        try {
+            // Check if token needs refresh
+            if (!tokenStorage.isTokenExpired()) {
+                return@withContext true
+            }
+
+            val refreshToken = tokenStorage.getRefreshToken()
+            if (refreshToken.isNullOrEmpty()) {
+                return@withContext false
+            }
+
+            // Call refresh endpoint
+            val request = RefreshTokenRequest(refreshToken)
+            val response = apiService.refreshToken(request)
+
+            if (response.isSuccessful && response.body() != null) {
+                val loginResponse = response.body()!!
+
+                // Update tokens
+                tokenStorage.saveTokens(
+                    accessToken = loginResponse.accessToken,
+                    idToken = loginResponse.idToken,
+                    refreshToken = loginResponse.refreshToken,
+                    expiresIn = loginResponse.expiresIn
+                )
+
+                true
+            } else {
+                // Refresh failed - user needs to login again
+                logout()
+                false
+            }
+        } catch (e: Exception) {
+            // Refresh failed - user needs to login again
+            logout()
+            false
+        }
     }
 
     /**
-     * Get stored ID token
-     * TODO: Implement with DataStore or EncryptedSharedPreferences
+     * Get ID token for API calls
+     * IMPORTANT: Use ID token, not access token, for API Gateway authentication
+     * Automatically refreshes if expired
      */
     suspend fun getIdToken(): String? {
-        // TODO: Retrieve ID token from secure storage
-        return null
+        refreshTokenIfNeeded()
+        return tokenStorage.getIdToken()
+    }
+
+    /**
+     * Get ID token with Bearer prefix for Authorization header
+     */
+    suspend fun getAuthorizationHeader(): String? {
+        val idToken = getIdToken()
+        return if (idToken != null) "Bearer $idToken" else null
     }
 
     /**
      * Check if user is logged in
      */
-    suspend fun isLoggedIn(): Boolean {
-        val token = getIdToken()
-        return !token.isNullOrEmpty()
+    fun isLoggedIn(): Boolean {
+        return tokenStorage.isLoggedIn()
     }
 
     /**
-     * Logout user
+     * Get stored user email
      */
-    suspend fun logout() {
-        // TODO: Clear stored tokens
+    fun getUserEmail(): String? {
+        return tokenStorage.getUserEmail()
+    }
+
+    /**
+     * Logout user - clear all tokens
+     */
+    fun logout() {
+        tokenStorage.clearTokens()
     }
 }
