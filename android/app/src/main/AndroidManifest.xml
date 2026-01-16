@@ -73,6 +73,13 @@
             android:exported="false"
             android:theme="@style/Theme.OSRP" />
 
+        <!-- Sensor Collection Service -->
+        <service
+            android:name=".sensors.SensorCollectionService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
         <!-- WorkManager initialization -->
         <provider
             android:name="androidx.startup.InitializationProvider"

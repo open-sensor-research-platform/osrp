@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity
 import io.osrp.app.R
 import io.osrp.app.data.repository.AuthRepository
 import io.osrp.app.databinding.ActivityMainBinding
+import io.osrp.app.sensors.SensorCollectionService
 import io.osrp.app.ui.auth.LoginActivity
 
 /**
@@ -52,8 +53,14 @@ class MainActivity : AppCompatActivity() {
             binding.userEmailText.text = "Logged in as: $userEmail"
         }
 
-        // TODO: Add navigation to different app sections
-        // TODO: Start sensor data collection services
+        // Add buttons for sensor collection (temporary UI for testing)
+        binding.startSensorButton.setOnClickListener {
+            startSensorCollection()
+        }
+
+        binding.stopSensorButton.setOnClickListener {
+            stopSensorCollection()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -82,5 +89,15 @@ class MainActivity : AppCompatActivity() {
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
         finish()
+    }
+
+    private fun startSensorCollection() {
+        SensorCollectionService.startCollection(this)
+        Toast.makeText(this, "Started sensor collection", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun stopSensorCollection() {
+        SensorCollectionService.stopCollection(this)
+        Toast.makeText(this, "Stopped sensor collection", Toast.LENGTH_SHORT).show()
     }
 }
