@@ -271,6 +271,8 @@ aws cognito-idp admin-set-user-password \
 
 ### 4. Test API
 
+**IMPORTANT**: API Gateway Cognito authorizer validates the **ID token**, not the access token. Mobile apps must use the ID token for all authenticated endpoints.
+
 ```bash
 # Test login
 curl -X POST $API_ENDPOINT/auth/login \
@@ -280,15 +282,15 @@ curl -X POST $API_ENDPOINT/auth/login \
     "password": "SecurePass123!"
   }' | jq .
 
-# Save access token
-export ACCESS_TOKEN=$(curl -s -X POST $API_ENDPOINT/auth/login \
+# Save ID token (REQUIRED for authenticated endpoints)
+export ID_TOKEN=$(curl -s -X POST $API_ENDPOINT/auth/login \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"SecurePass123!"}' \
-  | jq -r '.accessToken')
+  | jq -r '.idToken')
 
-# Test sensor upload
+# Test sensor upload (use ID token, not access token)
 curl -X POST $API_ENDPOINT/data/sensor \
-  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Authorization: Bearer $ID_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "sensorType": "accelerometer",

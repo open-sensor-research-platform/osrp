@@ -835,14 +835,14 @@ Resources:
       DeploymentId: !Ref ApiDeployment
       StageName: !Ref Environment
       Description: !Sub '${Environment} stage'
-      ThrottlingBurstLimit: 5000
-      ThrottlingRateLimit: 10000
       MethodSettings:
         - ResourcePath: '/*'
           HttpMethod: '*'
           LoggingLevel: INFO
           DataTraceEnabled: false
           MetricsEnabled: true
+          ThrottlingBurstLimit: 5000
+          ThrottlingRateLimit: 10000
       Tags:
         - Key: Environment
           Value: !Ref Environment
