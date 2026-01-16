@@ -1,0 +1,176 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'OSRP Data Upload Lambda Function'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+  StudyName:
+    Type: String
+    Default: osrp
+    Description: Study name for resource naming
+
+  DynamoDBStackName:
+    Type: String
+    Default: osrp-dynamodb-dev
+    Description: Name of DynamoDB CloudFormation stack
+
+  S3StackName:
+    Type: String
+    Default: osrp-s3-dev
+    Description: Name of S3 CloudFormation stack
+
+Resources:
+
+  # ============================================================================
+  # IAM Role for Lambda Execution
+  # ============================================================================
+
+  DataUploadLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${StudyName}-data-upload-lambda-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:BatchWriteItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:GetItem
+                Resource:
+                  - Fn::ImportValue: !Sub '${DynamoDBStackName}-SensorTimeSeriesTableArn'
+                  - Fn::ImportValue: !Sub '${DynamoDBStackName}-EventLogTableArn'
+                  - Fn::ImportValue: !Sub '${DynamoDBStackName}-DeviceStateTableArn'
+                  - Fn::ImportValue: !Sub '${DynamoDBStackName}-ParticipantStatusTableArn'
+        - PolicyName: S3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource:
+                  - Fn::Sub:
+                      - '${BucketArn}/*'
+                      - BucketArn:
+                          Fn::ImportValue: !Sub '${S3StackName}-DataBucketArn'
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource:
+                  Fn::ImportValue: !Sub '${S3StackName}-DataBucketArn'
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  # ============================================================================
+  # Lambda Function
+  # ============================================================================
+
+  DataUploadLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${StudyName}-data-upload-${Environment}'
+      Runtime: python3.11
+      Handler: data_upload_handler.lambda_handler
+      Role: !GetAtt DataUploadLambdaExecutionRole.Arn
+      Timeout: 30
+      MemorySize: 512
+
+      Environment:
+        Variables:
+          SENSOR_TABLE_NAME:
+            Fn::ImportValue: !Sub '${DynamoDBStackName}-SensorTimeSeriesTable'
+          EVENT_TABLE_NAME:
+            Fn::ImportValue: !Sub '${DynamoDBStackName}-EventLogTable'
+          DEVICE_STATE_TABLE_NAME:
+            Fn::ImportValue: !Sub '${DynamoDBStackName}-DeviceStateTable'
+          PARTICIPANT_TABLE_NAME:
+            Fn::ImportValue: !Sub '${DynamoDBStackName}-ParticipantStatusTable'
+          DATA_BUCKET_NAME:
+            Fn::ImportValue: !Sub '${S3StackName}-DataBucket'
+          ENVIRONMENT: !Ref Environment
+
+      Code:
+        ZipFile: |
+          import json
+          def lambda_handler(event, context):
+              return {
+                  'statusCode': 200,
+                  'body': json.dumps({'message': 'Placeholder - deploy actual code'})
+              }
+
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+        - Key: Purpose
+          Value: Data upload
+
+  # ============================================================================
+  # CloudWatch Log Group
+  # ============================================================================
+
+  DataUploadLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${DataUploadLambdaFunction}'
+      RetentionInDays: 30
+
+  # ============================================================================
+  # Lambda Permissions for API Gateway
+  # ============================================================================
+
+  DataUploadLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref DataUploadLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*'
+
+# ============================================================================
+# Outputs
+# ============================================================================
+
+Outputs:
+  DataUploadLambdaFunctionArn:
+    Description: Data Upload Lambda Function ARN
+    Value: !GetAtt DataUploadLambdaFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-DataUploadLambdaArn'
+
+  DataUploadLambdaFunctionName:
+    Description: Data Upload Lambda Function Name
+    Value: !Ref DataUploadLambdaFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-DataUploadLambdaName'
+
+  DataUploadLambdaExecutionRoleArn:
+    Description: Lambda Execution Role ARN
+    Value: !GetAtt DataUploadLambdaExecutionRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ExecutionRoleArn'
