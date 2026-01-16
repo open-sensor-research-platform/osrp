@@ -109,8 +109,8 @@ OSRP (Open Sensing Research Platform) provides:
 
 ### Technical Benefits
 - Runs on existing AWS infrastructure
-- HIPAA-compliant out of the box
-- No vendor lock-in (Apache 2.0 license)
+- Uses HIPAA-eligible AWS services (compliance configuration required)
+- Open source with full code ownership (Apache 2.0 license)
 - Integrates with institutional identity management
 - Uses university's existing AWS agreements
 - Modern Python tooling (uv, Marimo, pyproject.toml)

@@ -80,9 +80,9 @@ osrp notebooks
 | Benefit | Description |
 |---------|-------------|
 | **Existing Infrastructure** | Runs on AWS infrastructure you already have |
-| **HIPAA Compliant** | Built-in compliance for health research |
-| **No Vendor Lock-In** | Open source, full data ownership |
-| **Cost Effective** | ~$5 per participant per month |
+| **HIPAA-Compatible** | Uses HIPAA-eligible AWS services for health research |
+| **Open Source** | Full code ownership and customization (Apache 2.0) |
+| **Cost Effective** | Pay only for AWS services used (no licensing fees) |
 
 ### For Researchers
 
@@ -173,7 +173,7 @@ plots                # Auto-update on change
 | Analysis Tools | ❌ | ⚠️ | ⚠️ | ⚠️ | ❌ | **✅✅** |
 | Marimo Notebooks | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
 | Open Source | ✅ | ✅ | ❌ | ✅ | ✅ | **✅** |
-| Cost per participant/mo | Varies | Varies | $20-50 | Varies | Varies | **~$5** |
+| Cost per participant/mo | Varies | Varies | $20-50 | Varies | Varies | **AWS usage only** |
 
 **OSRP is the only platform with all modalities + AWS + integrated analysis.**
 
@@ -394,8 +394,8 @@ A: Currently Android only. iOS support is planned for future releases.
 **Q: Can I use OSRP with Google Cloud or Azure?**
 A: OSRP is AWS-native. While data access works anywhere, infrastructure templates are AWS-specific.
 
-**Q: Is OSRP HIPAA compliant?**
-A: OSRP uses HIPAA-eligible AWS services. You're responsible for proper configuration and BAAs with AWS.
+**Q: Is OSRP HIPAA-compatible?**
+A: OSRP uses HIPAA-eligible AWS services. Compliance is your responsibility - ensure proper configuration and execute Business Associate Agreements (BAAs) with AWS.
 
 **Q: How much does it cost?**
 A: ~$5 per participant per month for AWS services. No licensing fees (open source).

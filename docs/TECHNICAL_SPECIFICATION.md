@@ -369,7 +369,7 @@ data class ModuleConfiguration(
 - No PII in logs or analytics
 
 ### Compliance
-- HIPAA-compliant AWS services
+- Uses HIPAA-eligible AWS services (requires proper configuration)
 - IRB-ready consent flows
 - Data retention policies configurable
 - Audit logging enabled

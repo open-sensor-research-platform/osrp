@@ -26,10 +26,10 @@ OSRP combines screenshots, sensors, and wearables into one comprehensive researc
 
 **For Universities:**
 - Runs on existing AWS infrastructure
-- HIPAA-compliant out of the box
-- No vendor lock-in
+- Uses HIPAA-eligible AWS services
+- Open source with full code ownership
 - Uses AWS agreements you already have
-- ~$5 per participant per month
+- Pay only for AWS services used
 
 **For Researchers:**
 - Multi-modal data temporally aligned
