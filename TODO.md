@@ -1,0 +1,300 @@
+# OSRP - Remaining Tasks
+
+Tasks that still need to be completed for the full rebrand and launch.
+
+---
+
+## 🔴 High Priority
+
+### Documentation Updates (Still Using Old Names)
+
+- [ ] **docs/PROJECT_BRIEF.md**
+  - Replace "Mobile Sensing Platform" with "OSRP"
+  - Update terminology throughout
+
+- [ ] **docs/TECHNICAL_SPECIFICATION.md**
+  - Update all references to "Mobile Sensing Platform"
+  - Update package names and class names
+  - Update example code snippets
+
+- [ ] **docs/IMPLEMENTATION_PLAN.md**
+  - Update project name
+  - Update package structure references
+  - Update deployment commands
+
+- [ ] **GETTING_STARTED.md**
+  - Comprehensive rewrite with OSRP branding
+  - Update CLI commands
+  - Update example code
+
+- [ ] **templates/lambda_function_template.py**
+  - Add OSRP header comment
+  - Update package references
+
+- [ ] **infrastructure/README.md**
+  - Update project references
+  - Update stack naming conventions
+
+### Python Package Structure
+
+- [ ] **Move analysis/ into osrp/ package**
+  - Current: `osrp/analysis/utils/data_access.py`
+  - Target: `osrp/osrp/analysis/utils/data_access.py`
+  - Update imports in notebooks
+  - Update setup.py package discovery
+
+- [ ] **Fix import paths**
+  - Notebooks currently use: `from data_access import OSRPData`
+  - Should be: `from osrp import OSRPData`
+  - Or: `from osrp.analysis.utils import OSRPData`
+
+### Testing
+
+- [ ] **Test pip installation**
+  - Create test environment
+  - Install package: `pip install -e .`
+  - Verify imports work
+  - Test CLI commands
+
+- [ ] **Test notebooks**
+  - Verify all three notebooks run without errors
+  - Check imports resolve correctly
+  - Validate data access works
+
+- [ ] **Test CLI**
+  - Test `osrp init`
+  - Test `osrp deploy` (dry run)
+  - Test `osrp notebooks`
+  - Test `osrp status`
+  - Test `osrp info`
+
+---
+
+## 🟡 Medium Priority
+
+### GitHub Setup
+
+- [ ] **Create GitHub organization**
+  - Name: `osrp-platform`
+  - Create repositories:
+    - `osrp` (main repo)
+    - `docs` (documentation site)
+    - `examples` (example studies)
+    - `android-app` (Android application)
+
+- [ ] **Configure repository**
+  - Add README.md (already created)
+  - Add LICENSE (Apache 2.0)
+  - Add CONTRIBUTING.md
+  - Add CODE_OF_CONDUCT.md
+  - Add GitHub Actions workflows
+  - Add issue templates
+  - Add PR template
+
+- [ ] **Set up GitHub Pages**
+  - Configure docs.osrp.io
+  - Build documentation site
+  - Deploy landing page
+
+### Domain & Website
+
+- [ ] **Purchase domain**
+  - osrp.io (primary)
+  - Consider: osrp.org as backup
+
+- [ ] **Build landing page**
+  - Use LANDING_PAGE.md as content source
+  - Design mockups
+  - Implement responsive design
+  - Deploy to osrp.io
+
+- [ ] **Documentation site**
+  - Convert markdown docs to web format
+  - Add search functionality
+  - Add navigation
+  - Deploy to docs.osrp.io
+
+### Package Publishing
+
+- [ ] **Prepare for PyPI**
+  - Add MANIFEST.in
+  - Add LICENSE file
+  - Add CHANGELOG.md
+  - Test package build
+  - Test package installation
+
+- [ ] **Publish to PyPI**
+  - Create PyPI account
+  - Register package name: `osrp`
+  - Upload to TestPyPI first
+  - Upload to production PyPI
+
+### Android App
+
+- [ ] **Update Android app branding**
+  - Package name: `io.osrp.app`
+  - App name: "OSRP"
+  - Update all string resources
+  - Update icon and splash screen
+
+- [ ] **Update API references**
+  - Update endpoint configurations
+  - Update bucket names
+  - Update documentation
+
+---
+
+## 🟢 Lower Priority
+
+### Content Creation
+
+- [ ] **Demo video**
+  - 5-minute overview
+  - Show data collection
+  - Show analysis notebooks
+  - Show deployment
+
+- [ ] **Tutorial videos**
+  - Installation and setup
+  - Creating your first study
+  - Analyzing data with Marimo
+  - Deploying to AWS
+
+- [ ] **Blog posts**
+  - "Introducing OSRP"
+  - "OSRP vs AWARE vs Beiwe"
+  - "Multi-modal digital phenotyping"
+  - "Building on AWS with OSRP"
+
+### Community Building
+
+- [ ] **Social media presence**
+  - Twitter: @osrp_platform
+  - LinkedIn: OSRP page
+  - Reddit: r/digitalpheno
+
+- [ ] **Academic outreach**
+  - Email Stanford research groups
+  - Email MIT Media Lab
+  - Email UCLA psychology dept
+  - Present at conferences
+
+- [ ] **AWS partnership**
+  - Apply for AWS Research Credits
+  - AWS blog post collaboration
+  - AWS case study
+
+### Features & Improvements
+
+- [ ] **Additional notebooks**
+  - Sleep analysis
+  - Social media usage patterns
+  - Stress prediction model
+  - Location clustering
+
+- [ ] **CLI improvements**
+  - `osrp export` command (export data)
+  - `osrp validate` command (check configuration)
+  - `osrp monitor` command (real-time monitoring)
+  - `osrp participants` command (list/manage participants)
+
+- [ ] **Analysis features**
+  - Time zone handling
+  - Missing data imputation
+  - Advanced feature engineering
+  - Model deployment helpers
+
+---
+
+## 📋 Checklist for v0.1.0 Release
+
+### Code Complete
+- [x] Core package structure
+- [x] OSRPData class
+- [x] CLI implementation
+- [x] Example notebooks
+- [ ] All documentation updated
+- [ ] Tests passing
+- [ ] Package installable
+
+### Distribution
+- [ ] PyPI package published
+- [ ] GitHub repository public
+- [ ] Docker image (optional)
+- [ ] AWS Marketplace listing (optional)
+
+### Documentation
+- [x] README.md comprehensive
+- [x] QUICK_START.md created
+- [x] LANDING_PAGE.md created
+- [ ] All docs/ files updated
+- [ ] API reference generated
+- [ ] Contributing guide
+
+### Marketing
+- [ ] Landing page live at osrp.io
+- [ ] Documentation site at docs.osrp.io
+- [ ] Demo video published
+- [ ] Blog post published
+- [ ] Social media announcement
+
+---
+
+## 🎯 Launch Timeline
+
+### Week 1: Complete Rebrand
+- [x] Core code rebrand (DONE!)
+- [ ] Update all documentation
+- [ ] Test package installation
+- [ ] Fix any import issues
+
+### Week 2: GitHub & Domain
+- [ ] Create GitHub organization
+- [ ] Push code to public repo
+- [ ] Purchase osrp.io domain
+- [ ] Set up GitHub Pages
+
+### Week 3: Package & Website
+- [ ] Publish to PyPI
+- [ ] Build landing page
+- [ ] Deploy documentation site
+- [ ] Create demo video
+
+### Week 4: Launch
+- [ ] Soft launch (blog post, social media)
+- [ ] Reach out to universities
+- [ ] Submit to AWS Research Credits
+- [ ] Monitor feedback
+
+---
+
+## Notes for Future Development
+
+### v0.2.0 Features
+- Real-time interventions
+- Advanced ML pipelines
+- Researcher dashboard (web UI)
+- Multi-study management
+- Enhanced security features
+
+### v0.3.0 Features
+- iOS support (limited - no screenshots)
+- Additional wearables support
+- Federated learning
+- Edge ML inference
+- Multi-cloud support
+
+### Long-term Vision
+- Hosted SaaS version (cloud.osrp.io)
+- Enterprise features
+- Commercial support options
+- Integration with other platforms
+- Grant-funded development
+
+---
+
+**Current Status**: Core rebrand complete ✅
+**Next Step**: Update remaining documentation files
+**Target Launch**: 4 weeks from completion
+
+**Contact**: For questions or contributions, see CONTRIBUTING.md (to be created)
