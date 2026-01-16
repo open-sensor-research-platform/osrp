@@ -10,6 +10,7 @@ import SwiftUI
 struct MainView: View {
     @EnvironmentObject var authViewModel: AuthViewModel
     @StateObject private var statusViewModel = StatusViewModel()
+    @State private var showHealthKitPermission = false
 
     var body: some View {
         NavigationView {
@@ -127,7 +128,13 @@ struct MainView: View {
                             .controlSize(.large)
                         } else {
                             Button(action: {
-                                statusViewModel.startCollection()
+                                Task {
+                                    if await statusViewModel.isHealthKitAuthorized() {
+                                        statusViewModel.startCollection()
+                                    } else {
+                                        showHealthKitPermission = true
+                                    }
+                                }
                             }) {
                                 Label("Start Collection", systemImage: "play.circle.fill")
                                     .frame(maxWidth: .infinity)
@@ -172,6 +179,11 @@ struct MainView: View {
         }
         .onAppear {
             statusViewModel.startPeriodicRefresh()
+        }
+        .sheet(isPresented: $showHealthKitPermission) {
+            HealthKitPermissionView(isPresented: $showHealthKitPermission) {
+                statusViewModel.startCollection()
+            }
         }
     }
 }
