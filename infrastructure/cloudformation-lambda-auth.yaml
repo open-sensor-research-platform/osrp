@@ -1,0 +1,145 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'OSRP Authentication Lambda Function'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+  StudyName:
+    Type: String
+    Default: osrp
+    Description: Study name for resource naming
+
+  CognitoStackName:
+    Type: String
+    Default: osrp-cognito-dev
+    Description: Name of Cognito CloudFormation stack
+
+Resources:
+
+  # ============================================================================
+  # IAM Role for Lambda Execution
+  # ============================================================================
+
+  AuthLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${StudyName}-auth-lambda-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CognitoAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cognito-idp:SignUp
+                  - cognito-idp:InitiateAuth
+                  - cognito-idp:AdminCreateUser
+                  - cognito-idp:AdminGetUser
+                  - cognito-idp:AdminSetUserPassword
+                Resource:
+                  Fn::ImportValue: !Sub '${CognitoStackName}-UserPoolArn'
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  # ============================================================================
+  # Lambda Function
+  # ============================================================================
+
+  AuthLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${StudyName}-auth-${Environment}'
+      Runtime: python3.11
+      Handler: auth_handler.lambda_handler
+      Role: !GetAtt AuthLambdaExecutionRole.Arn
+      Timeout: 30
+      MemorySize: 256
+
+      Environment:
+        Variables:
+          USER_POOL_ID:
+            Fn::ImportValue: !Sub '${CognitoStackName}-UserPoolId'
+          CLIENT_ID:
+            Fn::ImportValue: !Sub '${CognitoStackName}-UserPoolClientId'
+          ENVIRONMENT: !Ref Environment
+
+      Code:
+        ZipFile: |
+          import json
+          def lambda_handler(event, context):
+              return {
+                  'statusCode': 200,
+                  'body': json.dumps({'message': 'Placeholder - deploy actual code'})
+              }
+
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+        - Key: Purpose
+          Value: Authentication
+
+  # ============================================================================
+  # CloudWatch Log Group
+  # ============================================================================
+
+  AuthLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AuthLambdaFunction}'
+      RetentionInDays: 30
+
+  # ============================================================================
+  # Lambda Permissions for API Gateway
+  # ============================================================================
+
+  AuthLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AuthLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:*/*/*/*'
+
+# ============================================================================
+# Outputs
+# ============================================================================
+
+Outputs:
+  AuthLambdaFunctionArn:
+    Description: Authentication Lambda Function ARN
+    Value: !GetAtt AuthLambdaFunction.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-AuthLambdaArn'
+
+  AuthLambdaFunctionName:
+    Description: Authentication Lambda Function Name
+    Value: !Ref AuthLambdaFunction
+    Export:
+      Name: !Sub '${AWS::StackName}-AuthLambdaName'
+
+  AuthLambdaExecutionRoleArn:
+    Description: Lambda Execution Role ARN
+    Value: !GetAtt AuthLambdaExecutionRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ExecutionRoleArn'
