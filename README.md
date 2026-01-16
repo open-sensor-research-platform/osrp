@@ -29,7 +29,6 @@ OSRP combines screenshots, sensors, and wearables into one comprehensive researc
 - Uses HIPAA-eligible AWS services
 - Open source with full code ownership
 - Uses AWS agreements you already have
-- Pay only for AWS services used
 
 **For Researchers:**
 - Multi-modal data temporally aligned

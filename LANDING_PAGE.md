@@ -82,7 +82,6 @@ osrp notebooks
 | **Existing Infrastructure** | Runs on AWS infrastructure you already have |
 | **HIPAA-Compatible** | Uses HIPAA-eligible AWS services for health research |
 | **Open Source** | Full code ownership and customization (Apache 2.0) |
-| **Cost Effective** | Pay only for AWS services used (no licensing fees) |
 
 ### For Researchers
 
@@ -173,7 +172,6 @@ plots                # Auto-update on change
 | Analysis Tools | ❌ | ⚠️ | ⚠️ | ⚠️ | ❌ | **✅✅** |
 | Marimo Notebooks | ❌ | ❌ | ❌ | ❌ | ❌ | **✅** |
 | Open Source | ✅ | ✅ | ❌ | ✅ | ✅ | **✅** |
-| Cost per participant/mo | Varies | Varies | $20-50 | Varies | Varies | **AWS usage only** |
 
 **OSRP is the only platform with all modalities + AWS + integrated analysis.**
 
