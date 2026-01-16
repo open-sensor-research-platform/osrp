@@ -1,0 +1,292 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'OSRP DynamoDB Tables - MVP Schema'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+  StudyName:
+    Type: String
+    Default: osrp
+    Description: Study name for resource naming
+
+Resources:
+
+  # ============================================================================
+  # ParticipantStatus Table
+  # ============================================================================
+  # Tracks participant enrollment, last seen, device info, data collection status
+
+  ParticipantStatusTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${StudyName}-ParticipantStatus-${Environment}'
+      BillingMode: PAY_PER_REQUEST  # On-demand pricing for MVP
+
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: groupCode
+          AttributeType: S
+        - AttributeName: lastSeenTimestamp
+          AttributeType: N
+
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+
+      GlobalSecondaryIndexes:
+        # Query participants by study group, sorted by last activity
+        - IndexName: groupCode-lastSeen-index
+          KeySchema:
+            - AttributeName: groupCode
+              KeyType: HASH
+            - AttributeName: lastSeenTimestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+      SSESpecification:
+        SSEEnabled: true
+
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+        - Key: Purpose
+          Value: Participant tracking
+
+  # ============================================================================
+  # SensorTimeSeries Table
+  # ============================================================================
+  # Stores time series sensor data (accelerometer, steps, etc.)
+
+  SensorTimeSeriesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${StudyName}-SensorTimeSeries-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+
+      AttributeDefinitions:
+        - AttributeName: userIdSensorType
+          AttributeType: S  # Composite: "userId#sensorType"
+        - AttributeName: timestamp
+          AttributeType: N  # Unix timestamp in milliseconds
+        - AttributeName: groupCode
+          AttributeType: S
+
+      KeySchema:
+        - AttributeName: userIdSensorType
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+
+      GlobalSecondaryIndexes:
+        # Query all sensor data for a study by time
+        - IndexName: groupCode-timestamp-index
+          KeySchema:
+            - AttributeName: groupCode
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+      TimeToLiveSpecification:
+        AttributeName: expirationTime
+        Enabled: true
+
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+      SSESpecification:
+        SSEEnabled: true
+
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+        - Key: Purpose
+          Value: Sensor time series data
+
+  # ============================================================================
+  # EventLog Table
+  # ============================================================================
+  # Stores discrete events (app launches, interactions, state changes)
+
+  EventLogTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${StudyName}-EventLog-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: timestampEventType
+          AttributeType: S  # Composite: "timestamp#eventType"
+        - AttributeName: groupCode
+          AttributeType: S
+        - AttributeName: eventType
+          AttributeType: S
+
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: timestampEventType
+          KeyType: RANGE
+
+      GlobalSecondaryIndexes:
+        # Query events by study and type
+        - IndexName: groupCode-eventType-index
+          KeySchema:
+            - AttributeName: groupCode
+              KeyType: HASH
+            - AttributeName: eventType
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+      TimeToLiveSpecification:
+        AttributeName: expirationTime
+        Enabled: true
+
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+      SSESpecification:
+        SSEEnabled: true
+
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+        - Key: Purpose
+          Value: Event logging
+
+  # ============================================================================
+  # DeviceState Table
+  # ============================================================================
+  # Stores device state snapshots (battery, connectivity, etc.)
+
+  DeviceStateTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${StudyName}-DeviceState-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+        - AttributeName: groupCode
+          AttributeType: S
+
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+
+      GlobalSecondaryIndexes:
+        # Query device states by study and time
+        - IndexName: groupCode-timestamp-index
+          KeySchema:
+            - AttributeName: groupCode
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+
+      TimeToLiveSpecification:
+        AttributeName: expirationTime
+        Enabled: true
+
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+
+      SSESpecification:
+        SSEEnabled: true
+
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+        - Key: Purpose
+          Value: Device state tracking
+
+Outputs:
+  ParticipantStatusTableName:
+    Description: ParticipantStatus table name
+    Value: !Ref ParticipantStatusTable
+    Export:
+      Name: !Sub '${AWS::StackName}-ParticipantStatusTable'
+
+  ParticipantStatusTableArn:
+    Description: ParticipantStatus table ARN
+    Value: !GetAtt ParticipantStatusTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-ParticipantStatusTableArn'
+
+  SensorTimeSeriesTableName:
+    Description: SensorTimeSeries table name
+    Value: !Ref SensorTimeSeriesTable
+    Export:
+      Name: !Sub '${AWS::StackName}-SensorTimeSeriesTable'
+
+  SensorTimeSeriesTableArn:
+    Description: SensorTimeSeries table ARN
+    Value: !GetAtt SensorTimeSeriesTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-SensorTimeSeriesTableArn'
+
+  EventLogTableName:
+    Description: EventLog table name
+    Value: !Ref EventLogTable
+    Export:
+      Name: !Sub '${AWS::StackName}-EventLogTable'
+
+  EventLogTableArn:
+    Description: EventLog table ARN
+    Value: !GetAtt EventLogTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-EventLogTableArn'
+
+  DeviceStateTableName:
+    Description: DeviceState table name
+    Value: !Ref DeviceStateTable
+    Export:
+      Name: !Sub '${AWS::StackName}-DeviceStateTable'
+
+  DeviceStateTableArn:
+    Description: DeviceState table ARN
+    Value: !GetAtt DeviceStateTable.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-DeviceStateTableArn'
