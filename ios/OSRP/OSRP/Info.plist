@@ -89,5 +89,11 @@
         <key>NSAllowsArbitraryLoads</key>
         <false/>
     </dict>
+
+    <!-- Permitted Background Task Identifiers -->
+    <key>BGTaskSchedulerPermittedIdentifiers</key>
+    <array>
+        <string>io.osrp.app.upload</string>
+    </array>
 </dict>
 </plist>
