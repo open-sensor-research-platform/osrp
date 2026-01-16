@@ -130,7 +130,7 @@ OSRP follows [Semantic Versioning 2.0.0](https://semver.org/spec/v2.0.0.html):
 For information about contributing to OSRP, see CONTRIBUTING.md (coming soon).
 
 To report bugs or request features, please open an issue at:
-https://github.com/osrp-platform/osrp/issues
+https://github.com/open-sensor-research-platform/osrp/issues
 
 ---
 

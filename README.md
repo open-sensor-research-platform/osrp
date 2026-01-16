@@ -278,7 +278,7 @@ aligned = data.align_multi_modal({
 
 - **Website**: [osrp.io](https://osrp.io)
 - **Documentation**: [docs.osrp.io](https://docs.osrp.io)
-- **GitHub**: [github.com/osrp-platform/osrp](https://github.com/osrp-platform/osrp)
+- **GitHub**: [github.com/open-sensor-research-platform/osrp](https://github.com/open-sensor-research-platform/osrp)
 - **Demo**: [demo.osrp.io](https://demo.osrp.io)
 
 ---
@@ -298,7 +298,7 @@ If you use OSRP in your research, please cite:
   title = {OSRP: Open Sensing Research Platform},
   author = {OSRP Contributors},
   year = {2026},
-  url = {https://github.com/osrp-platform/osrp}
+  url = {https://github.com/open-sensor-research-platform/osrp}
 }
 ```
 

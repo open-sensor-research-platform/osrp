@@ -234,7 +234,7 @@ python
 
 ```bash
 # 1. Clone repository
-git clone https://github.com/osrp-platform/osrp.git
+git clone https://github.com/open-sensor-research-platform/osrp.git
 cd osrp
 
 # 2. Create virtual environment
@@ -537,10 +537,10 @@ Common causes:
 
 ## Support
 
-- **GitHub**: https://github.com/osrp-platform/osrp
+- **GitHub**: https://github.com/open-sensor-research-platform/osrp
 - **Documentation**: https://docs.osrp.io (coming soon)
 - **Website**: https://osrp.io (coming soon)
-- **Issues**: https://github.com/osrp-platform/osrp/issues
+- **Issues**: https://github.com/open-sensor-research-platform/osrp/issues
 
 ---
 

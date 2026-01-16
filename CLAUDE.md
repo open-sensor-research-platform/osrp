@@ -133,7 +133,7 @@ uv --version
 
 ```bash
 # Clone repository
-git clone https://github.com/osrp-platform/osrp.git
+git clone https://github.com/open-sensor-research-platform/osrp.git
 cd osrp
 
 # Create virtual environment with uv
@@ -754,7 +754,7 @@ Types: `feat`, `fix`, `docs`, `test`, `refactor`, `style`, `chore`
 - **Boto3 Documentation**: https://boto3.amazonaws.com/v1/documentation/api/latest/index.html
 
 ### Community
-- **GitHub**: https://github.com/osrp-platform/osrp
+- **GitHub**: https://github.com/open-sensor-research-platform/osrp
 - **Documentation**: https://docs.osrp.io (coming soon)
 - **Website**: https://osrp.io (coming soon)
 

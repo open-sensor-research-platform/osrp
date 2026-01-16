@@ -300,7 +300,7 @@ See [QUICK_START.md](../QUICK_START.md) and [analysis/README.md](../analysis/REA
 **OSRP Implementation Plan v0.1.0**
 
 For questions or issues, see:
-- GitHub: https://github.com/osrp-platform/osrp
+- GitHub: https://github.com/open-sensor-research-platform/osrp
 - Documentation: https://docs.osrp.io (coming soon)
 - Quick Start: [QUICK_START.md](../QUICK_START.md)
 - Development Guide: [CLAUDE.md](../CLAUDE.md)

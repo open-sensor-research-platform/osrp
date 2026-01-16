@@ -233,7 +233,7 @@ These work but require AWS credentials:
 
 ### Medium Priority (Before Public Launch)
 
-- [ ] Create GitHub repository: github.com/osrp-platform/osrp
+- [ ] Create GitHub repository: github.com/open-sensor-research-platform/osrp
 - [ ] Purchase domain: osrp.io
 - [ ] Build landing page from LANDING_PAGE.md
 - [ ] Set up docs.osrp.io (GitHub Pages)
@@ -383,7 +383,7 @@ pytest
 **Links** (Coming Soon):
 - Website: https://osrp.io
 - Documentation: https://docs.osrp.io
-- GitHub: https://github.com/osrp-platform/osrp
+- GitHub: https://github.com/open-sensor-research-platform/osrp
 - Email: contact@osrp.io
 
 ---

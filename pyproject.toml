@@ -73,8 +73,8 @@ all = [
 [project.urls]
 Homepage = "https://osrp.io"
 Documentation = "https://docs.osrp.io"
-Repository = "https://github.com/osrp-platform/osrp"
-Issues = "https://github.com/osrp-platform/osrp/issues"
+Repository = "https://github.com/open-sensor-research-platform/osrp"
+Issues = "https://github.com/open-sensor-research-platform/osrp/issues"
 
 [project.scripts]
 osrp = "osrp.cli:main"

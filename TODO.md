@@ -75,7 +75,7 @@ Tasks that still need to be completed for the full rebrand and launch.
 ### GitHub Setup
 
 - [ ] **Create GitHub organization**
-  - Name: `osrp-platform`
+  - Name: `open-sensor-research-platform`
   - Create repositories:
     - `osrp` (main repo)
     - `docs` (documentation site)

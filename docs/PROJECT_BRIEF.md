@@ -380,7 +380,7 @@ OSRP (Open Sensing Research Platform) provides:
 
 - **Website**: https://osrp.io (coming soon)
 - **Documentation**: https://docs.osrp.io (coming soon)
-- **GitHub**: https://github.com/osrp-platform/osrp
+- **GitHub**: https://github.com/open-sensor-research-platform/osrp
 - **PyPI**: https://pypi.org/project/osrp/ (coming soon)
 - **License**: Apache 2.0
 - **Copyright**: 2026 Scott Friedman and OSRP Contributors

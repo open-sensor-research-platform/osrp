@@ -167,10 +167,10 @@ cloud.osrp.io          # Future hosted version
 
 ### GitHub Organization
 ```
-github.com/osrp-platform/osrp          # Main repository
-github.com/osrp-platform/docs          # Documentation
-github.com/osrp-platform/examples      # Example studies
-github.com/osrp-platform/android-app   # Android app
+github.com/open-sensor-research-platform/osrp          # Main repository
+github.com/open-sensor-research-platform/docs          # Documentation
+github.com/open-sensor-research-platform/examples      # Example studies
+github.com/open-sensor-research-platform/android-app   # Android app
 ```
 
 ---
@@ -198,8 +198,8 @@ github.com/osrp-platform/android-app   # Android app
 
 ### Immediate (Week 1)
 - [ ] Purchase osrp.io domain
-- [ ] Create GitHub organization: `osrp-platform`
-- [ ] Push code to github.com/osrp-platform/osrp
+- [ ] Create GitHub organization: `open-sensor-research-platform`
+- [ ] Push code to github.com/open-sensor-research-platform/osrp
 - [ ] Set up GitHub Pages for docs.osrp.io
 
 ### Short-term (Weeks 2-4)
@@ -334,7 +334,7 @@ MobileSensingData = OSRPData  # Deprecated, use OSRPData
 ## Contact & Support
 
 **Website**: osrp.io (coming soon)
-**GitHub**: github.com/osrp-platform/osrp
+**GitHub**: github.com/open-sensor-research-platform/osrp
 **Email**: contact@osrp.io
 **Documentation**: docs.osrp.io (coming soon)
 

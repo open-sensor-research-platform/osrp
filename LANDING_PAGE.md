@@ -21,7 +21,7 @@ Built for AWS. Open source.
 ### Primary CTA
 ```
 [Get Started] → GETTING_STARTED.md
-[View on GitHub] → github.com/osrp-platform/osrp
+[View on GitHub] → github.com/open-sensor-research-platform/osrp
 ```
 
 ### Hero Description
@@ -344,7 +344,7 @@ features = aggregator.context_features({
 ### Resources
 - **Website**: [osrp.io](https://osrp.io)
 - **Documentation**: [docs.osrp.io](https://docs.osrp.io)
-- **GitHub**: [github.com/osrp-platform/osrp](https://github.com/osrp-platform/osrp)
+- **GitHub**: [github.com/open-sensor-research-platform/osrp](https://github.com/open-sensor-research-platform/osrp)
 - **Demo**: [demo.osrp.io](https://demo.osrp.io)
 
 ### Support
@@ -371,7 +371,7 @@ If you use OSRP in your research, please cite:
   title = {OSRP: Open Sensing Research Platform},
   author = {OSRP Contributors},
   year = {2026},
-  url = {https://github.com/osrp-platform/osrp},
+  url = {https://github.com/open-sensor-research-platform/osrp},
   note = {Complete multi-modal mobile sensing for academic research}
 }
 ```
@@ -476,7 +476,7 @@ osrp deploy --aws
 # Start building the future of behavioral research
 ```
 
-[Get Started →](GETTING_STARTED.md) | [View Documentation →](docs/) | [Star on GitHub →](https://github.com/osrp-platform/osrp)
+[Get Started →](GETTING_STARTED.md) | [View Documentation →](docs/) | [Star on GitHub →](https://github.com/open-sensor-research-platform/osrp)
 
 ---
 

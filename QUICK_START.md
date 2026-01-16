@@ -309,7 +309,7 @@ pip install osrp[analysis]
 ## Getting Help
 
 - **Documentation**: [docs.osrp.io](https://docs.osrp.io)
-- **GitHub Issues**: [github.com/osrp-platform/osrp/issues](https://github.com/osrp-platform/osrp/issues)
+- **GitHub Issues**: [github.com/open-sensor-research-platform/osrp/issues](https://github.com/open-sensor-research-platform/osrp/issues)
 - **Email**: contact@osrp.io
 - **Community**: GitHub Discussions
 
