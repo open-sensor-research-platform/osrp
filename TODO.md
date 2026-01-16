@@ -115,33 +115,38 @@ Tasks that still need to be completed for the full rebrand and launch.
   - Add navigation
   - Deploy to docs.osrp.io
 
-### Package Publishing
+### ⚠️ Package Publishing - NOT READY YET
 
-- [ ] **Prepare for PyPI**
-  - Add MANIFEST.in
-  - Add LICENSE file ✅
-  - Add CHANGELOG.md ✅
-  - Test package build
-  - Test package installation ✅
+**Do NOT publish to PyPI until the system actually works!**
 
-- [ ] **Publish to PyPI**
-  - Create PyPI account
-  - Register package name: `osrp`
-  - Upload to TestPyPI first
-  - Upload to production PyPI
+Current status:
+- Package structure exists ✅
+- OSRPData class is a skeleton (no data to access yet) ❌
+- CLI commands are mostly placeholders ❌
+- No Android app ❌
+- No AWS infrastructure deployed ❌
+- No data collection happening ❌
 
-### Android App
+**Publish to PyPI ONLY after:**
+- [ ] Android app built and working
+- [ ] AWS infrastructure deployed and tested
+- [ ] End-to-end data collection working
+- [ ] OSRPData returns real data from deployed system
+- [ ] Pilot study completed successfully
 
-- [ ] **Update Android app branding**
+### Android App - CRITICAL TO BUILD
+
+- [ ] **Build Android app** (16-week plan)
+  - Week 1-4: Foundation (AWS + project structure + screenshots + app usage)
+  - Week 5-8: Sensors (built-in sensors + device state + data pipeline)
+  - Week 9-12: Wearables & EMA (Google Fit + Bluetooth + surveys)
+  - Week 13-16: Testing & deployment
+
+- [ ] **Configure for OSRP branding**
   - Package name: `io.osrp.app`
   - App name: "OSRP"
   - Update all string resources
-  - Update icon and splash screen
-
-- [ ] **Update API references**
-  - Update endpoint configurations
-  - Update bucket names
-  - Update documentation
+  - Create icon and splash screen
 
 ---
 
