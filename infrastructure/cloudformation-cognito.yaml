@@ -1,0 +1,259 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'OSRP Cognito User Pool - Authentication for Mobile Apps'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+  StudyName:
+    Type: String
+    Default: osrp
+    Description: Study name for resource naming
+
+Resources:
+
+  # ============================================================================
+  # Cognito User Pool
+  # ============================================================================
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub '${StudyName}-users-${Environment}'
+
+      # Username configuration
+      UsernameAttributes:
+        - email
+      UsernameConfiguration:
+        CaseSensitive: false
+
+      # Custom attributes for study management
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+          Mutable: true
+        - Name: studyCode
+          AttributeDataType: String
+          Mutable: true
+        - Name: participantId
+          AttributeDataType: String
+          Mutable: false  # Cannot change after creation
+
+      # Password policy
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          TemporaryPasswordValidityDays: 7
+
+      # Email verification
+      AutoVerifiedAttributes:
+        - email
+
+      EmailVerificationMessage: 'Your OSRP verification code is {####}'
+      EmailVerificationSubject: 'Verify your OSRP account'
+
+      # Email configuration
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+
+      # MFA configuration (optional but available)
+      MfaConfiguration: OPTIONAL
+      EnabledMfas:
+        - SOFTWARE_TOKEN_MFA
+
+      # Account recovery
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+
+      # User pool features
+      UserAttributeUpdateSettings:
+        AttributesRequireVerificationBeforeUpdate:
+          - email
+
+      # Device tracking
+      DeviceConfiguration:
+        ChallengeRequiredOnNewDevice: true
+        DeviceOnlyRememberedOnUserPrompt: false
+
+      # Admin create user config
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false  # Allow self-registration for MVP
+        InviteMessageTemplate:
+          EmailMessage: 'Welcome to OSRP! Your username is {username} and temporary password is {####}'
+          EmailSubject: 'Welcome to OSRP Study'
+
+      # Deletion protection for production
+      DeletionProtection: !If [IsProduction, ACTIVE, INACTIVE]
+
+      # Tags
+      UserPoolTags:
+        Environment: !Ref Environment
+        Project: OSRP
+        Purpose: Authentication
+
+  # ============================================================================
+  # User Pool Client (Mobile Apps)
+  # ============================================================================
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub '${StudyName}-mobile-client-${Environment}'
+      UserPoolId: !Ref UserPool
+
+      # Authentication flows
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH           # Secure Remote Password
+        - ALLOW_REFRESH_TOKEN_AUTH      # Refresh tokens
+        - ALLOW_USER_PASSWORD_AUTH      # Username/password (for testing)
+
+      # Token validity
+      RefreshTokenValidity: 30          # 30 days
+      AccessTokenValidity: 60           # 60 minutes
+      IdTokenValidity: 60               # 60 minutes
+
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: days
+
+      # Prevent user existence errors (security)
+      PreventUserExistenceErrors: ENABLED
+
+      # Read/write attributes
+      ReadAttributes:
+        - email
+        - email_verified
+        - custom:studyCode
+        - custom:participantId
+
+      WriteAttributes:
+        - email
+        - custom:studyCode
+
+  # ============================================================================
+  # User Pool Domain (for hosted UI - future use)
+  # ============================================================================
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Sub '${StudyName}-${Environment}-${AWS::AccountId}'
+      UserPoolId: !Ref UserPool
+
+  # ============================================================================
+  # Identity Pool (for AWS resource access)
+  # ============================================================================
+
+  IdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: !Sub '${StudyName}_identity_pool_${Environment}'
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !GetAtt UserPool.ProviderName
+
+  # ============================================================================
+  # IAM Roles for Identity Pool
+  # ============================================================================
+
+  # Authenticated role (for logged-in users)
+  CognitoAuthenticatedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${StudyName}-cognito-authenticated-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                cognito-identity.amazonaws.com:aud: !Ref IdentityPool
+              ForAnyValue:StringLike:
+                cognito-identity.amazonaws.com:amr: authenticated
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  # Attach role to identity pool
+  IdentityPoolRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref IdentityPool
+      Roles:
+        authenticated: !GetAtt CognitoAuthenticatedRole.Arn
+
+# ============================================================================
+# Conditions
+# ============================================================================
+
+Conditions:
+  IsProduction: !Equals [!Ref Environment, prod]
+
+# ============================================================================
+# Outputs
+# ============================================================================
+
+Outputs:
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref UserPool
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolId'
+
+  UserPoolArn:
+    Description: Cognito User Pool ARN
+    Value: !GetAtt UserPool.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolArn'
+
+  UserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value: !Ref UserPoolClient
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolClientId'
+
+  IdentityPoolId:
+    Description: Cognito Identity Pool ID
+    Value: !Ref IdentityPool
+    Export:
+      Name: !Sub '${AWS::StackName}-IdentityPoolId'
+
+  UserPoolDomain:
+    Description: Cognito User Pool Domain
+    Value: !Sub 'https://${UserPoolDomain}.auth.${AWS::Region}.amazoncognito.com'
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolDomain'
+
+  UserPoolProviderName:
+    Description: User Pool Provider Name
+    Value: !GetAtt UserPool.ProviderName
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolProviderName'
+
+  CognitoAuthenticatedRoleArn:
+    Description: IAM Role ARN for authenticated users
+    Value: !GetAtt CognitoAuthenticatedRole.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-AuthenticatedRoleArn'
