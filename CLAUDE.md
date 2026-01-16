@@ -58,6 +58,336 @@ Always use the new OSRP naming.
 
 ---
 
+## Project Management with GitHub
+
+### ⚠️ CRITICAL: Use GitHub Projects, NOT Markdown Files
+
+**DO NOT** use TODO.md, STATUS.md, or other markdown tracking files.
+
+**DO USE**:
+- GitHub Projects (Kanban boards)
+- GitHub Issues (individual tasks)
+- GitHub Milestones (release tracking)
+- GitHub Labels (categorization)
+
+### GitHub Project Structure
+
+#### 1. Projects
+
+Create project boards for different tracks:
+
+- **OSRP MVP** - Main development board
+- **Android Development** - Android-specific features
+- **iOS Development** - iOS-specific features
+- **AWS Infrastructure** - Backend work
+- **Documentation** - Docs and guides
+
+**Columns** (standard Kanban):
+- Backlog
+- Ready
+- In Progress
+- In Review
+- Done
+
+#### 2. Milestones
+
+Use milestones for major releases:
+
+- **v0.2.0: MVP Foundation** - Basic AWS + auth
+- **v0.3.0: Android MVP** - Basic Android data collection
+- **v0.4.0: iOS MVP** - Basic iOS data collection
+- **v0.5.0: Data Access Working** - OSRPData returns real data
+- **v1.0.0: Production Ready** - Full system operational
+
+#### 3. Labels
+
+**Type Labels**:
+- `type: feature` - New functionality
+- `type: bug` - Something broken
+- `type: enhancement` - Improve existing feature
+- `type: docs` - Documentation updates
+- `type: infrastructure` - AWS/backend work
+- `type: refactor` - Code improvement
+
+**Platform Labels**:
+- `platform: android` - Android app work
+- `platform: ios` - iOS app work
+- `platform: aws` - AWS infrastructure
+- `platform: python` - Python package work
+- `platform: web` - Landing page/docs site
+
+**Priority Labels**:
+- `priority: critical` - Must have for MVP
+- `priority: high` - Important but not blocking
+- `priority: medium` - Nice to have
+- `priority: low` - Future consideration
+
+**Status Labels**:
+- `status: blocked` - Can't proceed
+- `status: needs-review` - Ready for code review
+- `status: needs-testing` - Needs QA
+- `status: needs-discussion` - Requires team input
+
+**Size Labels**:
+- `size: xs` - < 1 hour
+- `size: s` - 1-4 hours
+- `size: m` - 1-2 days
+- `size: l` - 3-5 days
+- `size: xl` - 1+ weeks
+
+#### 4. Issue Templates
+
+Create issue templates for:
+
+**Feature Request**:
+```markdown
+## Description
+[Clear description of the feature]
+
+## User Story
+As a [user type], I want [goal] so that [reason]
+
+## Acceptance Criteria
+- [ ] Criterion 1
+- [ ] Criterion 2
+
+## Technical Notes
+[Implementation details]
+
+## Dependencies
+[Related issues or prerequisites]
+```
+
+**Bug Report**:
+```markdown
+## Description
+[What's broken]
+
+## Steps to Reproduce
+1. Step 1
+2. Step 2
+
+## Expected Behavior
+[What should happen]
+
+## Actual Behavior
+[What actually happens]
+
+## Environment
+- Device: [e.g., Fire Tablet, iPhone]
+- OS: [e.g., Fire OS 8, iOS 17]
+- App Version: [e.g., 0.2.0]
+
+## Logs/Screenshots
+[Attach relevant logs]
+```
+
+**Infrastructure Task**:
+```markdown
+## Service
+[AWS service: Lambda, DynamoDB, S3, etc.]
+
+## Description
+[What needs to be done]
+
+## Configuration
+[Required settings/parameters]
+
+## Testing
+- [ ] Test locally
+- [ ] Deploy to dev
+- [ ] Verify in staging
+
+## Dependencies
+[Related issues]
+```
+
+### Creating Issues via gh CLI
+
+```bash
+# Create feature issue
+gh issue create \
+  --title "Add accelerometer data collection to Android app" \
+  --body "Implement accelerometer sensor module following BaseSensorModule interface" \
+  --label "type: feature,platform: android,priority: critical,size: m" \
+  --milestone "v0.3.0: Android MVP"
+
+# Create bug issue
+gh issue create \
+  --title "Authentication fails on iOS with expired token" \
+  --body "Token refresh not working properly" \
+  --label "type: bug,platform: ios,priority: high,size: s" \
+  --assignee scttfrdmn
+
+# List issues
+gh issue list --label "platform: android" --milestone "v0.3.0: Android MVP"
+
+# Update issue
+gh issue edit 42 --add-label "status: blocked"
+
+# Close issue
+gh issue close 42 --comment "Fixed in PR #45"
+```
+
+### Project Automation
+
+Set up GitHub Actions to automate:
+
+1. **Auto-label PRs** based on files changed
+2. **Move issues** to "In Progress" when branch created
+3. **Move issues** to "In Review" when PR opened
+4. **Close issues** automatically when PR merged with "Fixes #123"
+
+### Workflow
+
+#### Starting Work
+
+```bash
+# 1. Find issue from project board
+gh issue list --label "priority: critical" --milestone "v0.3.0: Android MVP"
+
+# 2. Assign to yourself
+gh issue edit 42 --add-assignee scttfrdmn
+
+# 3. Create branch
+git checkout -b feature/42-accelerometer-collection
+
+# 4. Move issue to "In Progress" on project board
+gh issue edit 42 --add-label "status: in-progress"
+
+# 5. Work on feature
+# ... code ...
+
+# 6. Commit with issue reference
+git commit -m "Add accelerometer module
+
+- Implement BaseSensorModule interface
+- Add sampling rate configuration
+- Add data batching
+
+Relates to #42"
+```
+
+#### Creating PR
+
+```bash
+# 1. Push branch
+git push -u origin feature/42-accelerometer-collection
+
+# 2. Create PR with issue reference
+gh pr create \
+  --title "Add accelerometer data collection" \
+  --body "Implements accelerometer sensor module
+
+## Changes
+- Created AccelerometerModule class
+- Added sampling rate config
+- Implemented data batching
+
+## Testing
+- [x] Unit tests pass
+- [x] Tested on Fire Tablet
+- [x] Data uploads to AWS
+
+Fixes #42" \
+  --label "platform: android"
+
+# 3. Issue automatically moves to "In Review"
+```
+
+#### After Merge
+
+```bash
+# Issue automatically closes and moves to "Done"
+# Branch can be deleted
+
+gh pr merge 45 --squash --delete-branch
+```
+
+### Issue Dependencies
+
+Link related issues:
+
+```bash
+# Issue #45 depends on #42
+gh issue edit 45 --body "Depends on #42
+
+[Original description]"
+
+# Issue #50 blocks #48
+gh issue edit 48 --body "Blocked by #50
+
+[Original description]"
+```
+
+### GitHub Project Views
+
+Create custom views:
+
+1. **By Priority** - Group by priority label
+2. **By Platform** - Group by platform (Android/iOS/AWS)
+3. **By Milestone** - Group by milestone
+4. **By Assignee** - See who's working on what
+5. **Blocked Items** - Filter for status:blocked label
+
+### Best Practices
+
+1. **One issue = One task** - Keep issues focused and actionable
+2. **Reference issues in commits** - Use "Fixes #123" or "Relates to #123"
+3. **Update issues regularly** - Add progress comments
+4. **Use labels consistently** - Every issue needs type, platform, priority
+5. **Close stale issues** - If not working on it, close it
+6. **Link PRs to issues** - Always reference the issue number
+7. **Use milestones** - Group issues by release version
+8. **Keep project board updated** - Move cards as work progresses
+
+### Example Issue Workflow
+
+```bash
+# Create milestone
+gh api repos/open-sensor-research-platform/osrp/milestones \
+  -f title="v0.3.0: Android MVP" \
+  -f description="Basic Android data collection working" \
+  -f due_on="2026-03-01T00:00:00Z"
+
+# Create issues for Android MVP
+gh issue create --title "Set up Android project structure" \
+  --label "type: feature,platform: android,priority: critical,size: s" \
+  --milestone "v0.3.0: Android MVP"
+
+gh issue create --title "Implement Cognito authentication" \
+  --label "type: feature,platform: android,priority: critical,size: m" \
+  --milestone "v0.3.0: Android MVP"
+
+gh issue create --title "Create accelerometer sensor module" \
+  --label "type: feature,platform: android,priority: critical,size: m" \
+  --milestone "v0.3.0: Android MVP"
+
+# View milestone progress
+gh issue list --milestone "v0.3.0: Android MVP"
+
+# View by label
+gh issue list --label "platform: android"
+```
+
+### Reporting
+
+```bash
+# Issues by milestone
+gh issue list --milestone "v0.3.0: Android MVP" --json number,title,state
+
+# Burndown - issues closed vs open
+gh issue list --milestone "v0.3.0: Android MVP" --state all
+
+# Issues by assignee
+gh issue list --assignee scttfrdmn
+
+# Critical issues
+gh issue list --label "priority: critical"
+```
+
+---
+
 ## Project Structure
 
 ```
