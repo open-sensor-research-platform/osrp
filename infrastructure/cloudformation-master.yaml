@@ -1,0 +1,933 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'OSRP Complete Infrastructure Stack - MVP v0.2.0'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+  StudyName:
+    Type: String
+    Default: osrp
+    Description: Study name for resource naming
+    AllowedPattern: '^[a-z0-9-]+$'
+    ConstraintDescription: Must contain only lowercase letters, numbers, and hyphens
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: 'Environment Configuration'
+        Parameters:
+          - Environment
+          - StudyName
+    ParameterLabels:
+      Environment:
+        default: 'Deployment Environment'
+      StudyName:
+        default: 'Study Name'
+
+Conditions:
+  IsProduction: !Equals [!Ref Environment, prod]
+
+Resources:
+
+  # ============================================================================
+  # DynamoDB Tables
+  # ============================================================================
+
+  ParticipantStatusTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${StudyName}-ParticipantStatus-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: groupCode
+          AttributeType: S
+        - AttributeName: lastSeenTimestamp
+          AttributeType: N
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: groupCode-lastSeen-index
+          KeySchema:
+            - AttributeName: groupCode
+              KeyType: HASH
+            - AttributeName: lastSeenTimestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  SensorTimeSeriesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${StudyName}-SensorTimeSeries-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userIdSensorType
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+        - AttributeName: groupCode
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userIdSensorType
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: groupCode-timestamp-index
+          KeySchema:
+            - AttributeName: groupCode
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: expirationTime
+        Enabled: true
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  EventLogTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${StudyName}-EventLog-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: timestampEventType
+          AttributeType: S
+        - AttributeName: groupCode
+          AttributeType: S
+        - AttributeName: eventType
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: timestampEventType
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: groupCode-eventType-index
+          KeySchema:
+            - AttributeName: groupCode
+              KeyType: HASH
+            - AttributeName: eventType
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: expirationTime
+        Enabled: true
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  DeviceStateTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Sub '${StudyName}-DeviceState-${Environment}'
+      BillingMode: PAY_PER_REQUEST
+      AttributeDefinitions:
+        - AttributeName: userId
+          AttributeType: S
+        - AttributeName: timestamp
+          AttributeType: N
+        - AttributeName: groupCode
+          AttributeType: S
+      KeySchema:
+        - AttributeName: userId
+          KeyType: HASH
+        - AttributeName: timestamp
+          KeyType: RANGE
+      GlobalSecondaryIndexes:
+        - IndexName: groupCode-timestamp-index
+          KeySchema:
+            - AttributeName: groupCode
+              KeyType: HASH
+            - AttributeName: timestamp
+              KeyType: RANGE
+          Projection:
+            ProjectionType: ALL
+      TimeToLiveSpecification:
+        AttributeName: expirationTime
+        Enabled: true
+      StreamSpecification:
+        StreamViewType: NEW_AND_OLD_IMAGES
+      PointInTimeRecoverySpecification:
+        PointInTimeRecoveryEnabled: true
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  # ============================================================================
+  # S3 Buckets
+  # ============================================================================
+
+  LoggingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${StudyName}-logs-${Environment}-${AWS::AccountId}'
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: LogRetention
+            Status: Enabled
+            ExpirationInDays: 90
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: STANDARD_IA
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  DataBucket:
+    Type: AWS::S3::Bucket
+    DependsOn: LoggingBucket
+    Properties:
+      BucketName: !Sub '${StudyName}-data-${Environment}-${AWS::AccountId}'
+      VersioningConfiguration:
+        Status: Enabled
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: RawDataLifecycle
+            Status: Enabled
+            Prefix: raw/
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: STANDARD_IA
+              - TransitionInDays: 90
+                StorageClass: GLACIER
+            NoncurrentVersionTransitions:
+              - TransitionInDays: 30
+                StorageClass: STANDARD_IA
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 90
+          - Id: ProcessedDataLifecycle
+            Status: Enabled
+            Prefix: processed/
+            NoncurrentVersionTransitions:
+              - TransitionInDays: 30
+                StorageClass: STANDARD_IA
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 90
+          - Id: TempDataCleanup
+            Status: Enabled
+            Prefix: temp/
+            ExpirationInDays: 7
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 7
+          - Id: CleanupIncompleteUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 3
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - HEAD
+            AllowedHeaders:
+              - '*'
+            MaxAge: 3000
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LoggingBucket
+        LogFilePrefix: s3-access-logs/
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  DataBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DataBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt DataBucket.Arn
+              - !Sub '${DataBucket.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+  # ============================================================================
+  # Cognito User Pool
+  # ============================================================================
+
+  UserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub '${StudyName}-users-${Environment}'
+      UsernameAttributes:
+        - email
+      UsernameConfiguration:
+        CaseSensitive: false
+      Schema:
+        - Name: email
+          AttributeDataType: String
+          Required: true
+          Mutable: true
+        - Name: studyCode
+          AttributeDataType: String
+          Mutable: true
+        - Name: participantId
+          AttributeDataType: String
+          Mutable: false
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireUppercase: true
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: true
+          TemporaryPasswordValidityDays: 7
+      AutoVerifiedAttributes:
+        - email
+      EmailVerificationMessage: 'Your OSRP verification code is {####}'
+      EmailVerificationSubject: 'Verify your OSRP account'
+      EmailConfiguration:
+        EmailSendingAccount: COGNITO_DEFAULT
+      MfaConfiguration: OPTIONAL
+      EnabledMfas:
+        - SOFTWARE_TOKEN_MFA
+      AccountRecoverySetting:
+        RecoveryMechanisms:
+          - Name: verified_email
+            Priority: 1
+      UserAttributeUpdateSettings:
+        AttributesRequireVerificationBeforeUpdate:
+          - email
+      DeviceConfiguration:
+        ChallengeRequiredOnNewDevice: true
+        DeviceOnlyRememberedOnUserPrompt: false
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: false
+        InviteMessageTemplate:
+          EmailMessage: 'Welcome to OSRP! Your username is {username} and temporary password is {####}'
+          EmailSubject: 'Welcome to OSRP Study'
+      DeletionProtection: !If [IsProduction, ACTIVE, INACTIVE]
+      UserPoolTags:
+        Environment: !Ref Environment
+        Project: OSRP
+
+  UserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Sub '${StudyName}-mobile-client-${Environment}'
+      UserPoolId: !Ref UserPool
+      ExplicitAuthFlows:
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+        - ALLOW_USER_PASSWORD_AUTH
+      RefreshTokenValidity: 30
+      AccessTokenValidity: 60
+      IdTokenValidity: 60
+      TokenValidityUnits:
+        AccessToken: minutes
+        IdToken: minutes
+        RefreshToken: days
+      PreventUserExistenceErrors: ENABLED
+      ReadAttributes:
+        - email
+        - email_verified
+        - custom:studyCode
+        - custom:participantId
+      WriteAttributes:
+        - email
+        - custom:studyCode
+
+  UserPoolDomain:
+    Type: AWS::Cognito::UserPoolDomain
+    Properties:
+      Domain: !Sub '${StudyName}-${Environment}-${AWS::AccountId}'
+      UserPoolId: !Ref UserPool
+
+  IdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: !Sub '${StudyName}_identity_pool_${Environment}'
+      AllowUnauthenticatedIdentities: false
+      CognitoIdentityProviders:
+        - ClientId: !Ref UserPoolClient
+          ProviderName: !GetAtt UserPool.ProviderName
+
+  CognitoAuthenticatedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${StudyName}-cognito-authenticated-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+            Action: sts:AssumeRoleWithWebIdentity
+            Condition:
+              StringEquals:
+                cognito-identity.amazonaws.com:aud: !Ref IdentityPool
+              ForAnyValue:StringLike:
+                cognito-identity.amazonaws.com:amr: authenticated
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  IdentityPoolRoleAttachment:
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId: !Ref IdentityPool
+      Roles:
+        authenticated: !GetAtt CognitoAuthenticatedRole.Arn
+
+  # ============================================================================
+  # Lambda Execution Roles
+  # ============================================================================
+
+  AuthLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${StudyName}-auth-lambda-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: CognitoAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cognito-idp:SignUp
+                  - cognito-idp:InitiateAuth
+                  - cognito-idp:AdminCreateUser
+                  - cognito-idp:AdminGetUser
+                  - cognito-idp:AdminSetUserPassword
+                Resource: !GetAtt UserPool.Arn
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  DataUploadLambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub '${StudyName}-data-upload-lambda-role-${Environment}'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: DynamoDBAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - dynamodb:PutItem
+                  - dynamodb:BatchWriteItem
+                  - dynamodb:UpdateItem
+                  - dynamodb:GetItem
+                Resource:
+                  - !GetAtt SensorTimeSeriesTable.Arn
+                  - !GetAtt EventLogTable.Arn
+                  - !GetAtt DeviceStateTable.Arn
+                  - !GetAtt ParticipantStatusTable.Arn
+        - PolicyName: S3Access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:GetObject
+                Resource: !Sub '${DataBucket.Arn}/*'
+              - Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: !GetAtt DataBucket.Arn
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  # ============================================================================
+  # Lambda Functions
+  # ============================================================================
+
+  AuthLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${StudyName}-auth-${Environment}'
+      Runtime: python3.11
+      Handler: auth_handler.lambda_handler
+      Role: !GetAtt AuthLambdaExecutionRole.Arn
+      Timeout: 30
+      MemorySize: 256
+      Environment:
+        Variables:
+          USER_POOL_ID: !Ref UserPool
+          CLIENT_ID: !Ref UserPoolClient
+          ENVIRONMENT: !Ref Environment
+      Code:
+        ZipFile: |
+          import json
+          def lambda_handler(event, context):
+              return {
+                  'statusCode': 200,
+                  'headers': {'Content-Type': 'application/json'},
+                  'body': json.dumps({'message': 'Deploy actual Lambda code using update-function-code'})
+              }
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  AuthLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${AuthLambdaFunction}'
+      RetentionInDays: 30
+
+  DataUploadLambdaFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: !Sub '${StudyName}-data-upload-${Environment}'
+      Runtime: python3.11
+      Handler: data_upload_handler.lambda_handler
+      Role: !GetAtt DataUploadLambdaExecutionRole.Arn
+      Timeout: 30
+      MemorySize: 512
+      Environment:
+        Variables:
+          SENSOR_TABLE_NAME: !Ref SensorTimeSeriesTable
+          EVENT_TABLE_NAME: !Ref EventLogTable
+          DEVICE_STATE_TABLE_NAME: !Ref DeviceStateTable
+          PARTICIPANT_TABLE_NAME: !Ref ParticipantStatusTable
+          DATA_BUCKET_NAME: !Ref DataBucket
+          ENVIRONMENT: !Ref Environment
+      Code:
+        ZipFile: |
+          import json
+          def lambda_handler(event, context):
+              return {
+                  'statusCode': 200,
+                  'headers': {'Content-Type': 'application/json'},
+                  'body': json.dumps({'message': 'Deploy actual Lambda code using update-function-code'})
+              }
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  DataUploadLambdaLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/lambda/${DataUploadLambdaFunction}'
+      RetentionInDays: 30
+
+  # ============================================================================
+  # API Gateway
+  # ============================================================================
+
+  RestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: !Sub '${StudyName}-api-${Environment}'
+      Description: OSRP REST API for mobile apps
+      EndpointConfiguration:
+        Types:
+          - REGIONAL
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  CognitoAuthorizer:
+    Type: AWS::ApiGateway::Authorizer
+    Properties:
+      Name: !Sub '${StudyName}-cognito-authorizer-${Environment}'
+      Type: COGNITO_USER_POOLS
+      IdentitySource: method.request.header.Authorization
+      RestApiId: !Ref RestApi
+      ProviderARNs:
+        - !GetAtt UserPool.Arn
+
+  # API Resources
+  AuthResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: auth
+
+  AuthRegisterResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref AuthResource
+      PathPart: register
+
+  AuthLoginResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref AuthResource
+      PathPart: login
+
+  AuthRefreshResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref AuthResource
+      PathPart: refresh
+
+  DataResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !GetAtt RestApi.RootResourceId
+      PathPart: data
+
+  DataSensorResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref DataResource
+      PathPart: sensor
+
+  DataEventResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref DataResource
+      PathPart: event
+
+  DataDeviceStateResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref DataResource
+      PathPart: device-state
+
+  DataPresignedUrlResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      RestApiId: !Ref RestApi
+      ParentId: !Ref DataResource
+      PathPart: presigned-url
+
+  # Lambda Permissions
+  AuthLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref AuthLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/*'
+
+  DataUploadLambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref DataUploadLambdaFunction
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+      SourceArn: !Sub 'arn:aws:execute-api:${AWS::Region}:${AWS::AccountId}:${RestApi}/*/*/*'
+
+  # Auth Methods
+  AuthRegisterMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref AuthRegisterResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AuthLambdaFunction.Arn}/invocations'
+
+  AuthLoginMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref AuthLoginResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AuthLambdaFunction.Arn}/invocations'
+
+  AuthRefreshMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref AuthRefreshResource
+      HttpMethod: POST
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${AuthLambdaFunction.Arn}/invocations'
+
+  # Data Methods
+  DataSensorMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref DataSensorResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DataUploadLambdaFunction.Arn}/invocations'
+
+  DataEventMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref DataEventResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DataUploadLambdaFunction.Arn}/invocations'
+
+  DataDeviceStateMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref DataDeviceStateResource
+      HttpMethod: POST
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DataUploadLambdaFunction.Arn}/invocations'
+
+  DataPresignedUrlMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref RestApi
+      ResourceId: !Ref DataPresignedUrlResource
+      HttpMethod: GET
+      AuthorizationType: COGNITO_USER_POOLS
+      AuthorizerId: !Ref CognitoAuthorizer
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: !Sub 'arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${DataUploadLambdaFunction.Arn}/invocations'
+
+  # API Deployment
+  ApiDeployment:
+    Type: AWS::ApiGateway::Deployment
+    DependsOn:
+      - AuthRegisterMethod
+      - AuthLoginMethod
+      - AuthRefreshMethod
+      - DataSensorMethod
+      - DataEventMethod
+      - DataDeviceStateMethod
+      - DataPresignedUrlMethod
+    Properties:
+      RestApiId: !Ref RestApi
+      Description: !Sub 'Deployment for ${Environment} environment'
+
+  ApiStage:
+    Type: AWS::ApiGateway::Stage
+    Properties:
+      RestApiId: !Ref RestApi
+      DeploymentId: !Ref ApiDeployment
+      StageName: !Ref Environment
+      Description: !Sub '${Environment} stage'
+      ThrottlingBurstLimit: 5000
+      ThrottlingRateLimit: 10000
+      MethodSettings:
+        - ResourcePath: '/*'
+          HttpMethod: '*'
+          LoggingLevel: INFO
+          DataTraceEnabled: false
+          MetricsEnabled: true
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+
+  ApiLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/aws/apigateway/${StudyName}-api-${Environment}'
+      RetentionInDays: 30
+
+# ============================================================================
+# Outputs
+# ============================================================================
+
+Outputs:
+  # API Gateway
+  ApiEndpoint:
+    Description: API Gateway Endpoint URL
+    Value: !Sub 'https://${RestApi}.execute-api.${AWS::Region}.amazonaws.com/${Environment}'
+    Export:
+      Name: !Sub '${AWS::StackName}-ApiEndpoint'
+
+  RestApiId:
+    Description: REST API ID
+    Value: !Ref RestApi
+    Export:
+      Name: !Sub '${AWS::StackName}-RestApiId'
+
+  # Cognito
+  UserPoolId:
+    Description: Cognito User Pool ID
+    Value: !Ref UserPool
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolId'
+
+  UserPoolClientId:
+    Description: Cognito User Pool Client ID
+    Value: !Ref UserPoolClient
+    Export:
+      Name: !Sub '${AWS::StackName}-UserPoolClientId'
+
+  IdentityPoolId:
+    Description: Cognito Identity Pool ID
+    Value: !Ref IdentityPool
+    Export:
+      Name: !Sub '${AWS::StackName}-IdentityPoolId'
+
+  # DynamoDB
+  ParticipantStatusTableName:
+    Description: ParticipantStatus table name
+    Value: !Ref ParticipantStatusTable
+
+  SensorTimeSeriesTableName:
+    Description: SensorTimeSeries table name
+    Value: !Ref SensorTimeSeriesTable
+
+  EventLogTableName:
+    Description: EventLog table name
+    Value: !Ref EventLogTable
+
+  DeviceStateTableName:
+    Description: DeviceState table name
+    Value: !Ref DeviceStateTable
+
+  # S3
+  DataBucketName:
+    Description: Data bucket name
+    Value: !Ref DataBucket
+
+  LoggingBucketName:
+    Description: Logging bucket name
+    Value: !Ref LoggingBucket
+
+  # Lambda
+  AuthLambdaFunctionName:
+    Description: Auth Lambda function name
+    Value: !Ref AuthLambdaFunction
+
+  DataUploadLambdaFunctionName:
+    Description: Data Upload Lambda function name
+    Value: !Ref DataUploadLambdaFunction
+
+  # Instructions
+  NextSteps:
+    Description: Next steps after deployment
+    Value: 'Deploy Lambda code using: aws lambda update-function-code --function-name <function-name> --zip-file fileb://handler.zip'
