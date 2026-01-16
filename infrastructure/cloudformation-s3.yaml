@@ -1,0 +1,218 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'OSRP S3 Bucket - Data Storage with Lifecycle Policies'
+
+Parameters:
+  Environment:
+    Type: String
+    Default: dev
+    AllowedValues:
+      - dev
+      - staging
+      - prod
+    Description: Environment name
+
+  StudyName:
+    Type: String
+    Default: osrp
+    Description: Study name for resource naming
+
+Resources:
+
+  # ============================================================================
+  # S3 Bucket for Data Storage
+  # ============================================================================
+
+  DataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${StudyName}-data-${Environment}-${AWS::AccountId}'
+
+      # Versioning for data protection
+      VersioningConfiguration:
+        Status: Enabled
+
+      # Server-side encryption
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+      # Public access block (keep private)
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+      # Lifecycle policies for cost optimization
+      LifecycleConfiguration:
+        Rules:
+          # Raw sensor data: IA after 30 days, Glacier after 90 days
+          - Id: RawDataLifecycle
+            Status: Enabled
+            Prefix: raw/
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: STANDARD_IA
+              - TransitionInDays: 90
+                StorageClass: GLACIER
+            NoncurrentVersionTransitions:
+              - TransitionInDays: 30
+                StorageClass: STANDARD_IA
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 90
+
+          # Processed data: Keep in Standard, transition versions
+          - Id: ProcessedDataLifecycle
+            Status: Enabled
+            Prefix: processed/
+            NoncurrentVersionTransitions:
+              - TransitionInDays: 30
+                StorageClass: STANDARD_IA
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 90
+
+          # Temporary uploads: Delete after 7 days
+          - Id: TempDataCleanup
+            Status: Enabled
+            Prefix: temp/
+            ExpirationInDays: 7
+            NoncurrentVersionExpiration:
+              NoncurrentDays: 7
+
+          # Delete incomplete multipart uploads after 3 days
+          - Id: CleanupIncompleteUploads
+            Status: Enabled
+            AbortIncompleteMultipartUpload:
+              DaysAfterInitiation: 3
+
+      # CORS configuration for direct uploads from mobile apps
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - '*'
+            AllowedMethods:
+              - GET
+              - PUT
+              - POST
+              - HEAD
+            AllowedHeaders:
+              - '*'
+            MaxAge: 3000
+
+      # Logging configuration
+      LoggingConfiguration:
+        DestinationBucketName: !Ref LoggingBucket
+        LogFilePrefix: s3-access-logs/
+
+      # Tags
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+        - Key: Purpose
+          Value: Data storage
+
+  # ============================================================================
+  # Logging Bucket
+  # ============================================================================
+
+  LoggingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${StudyName}-logs-${Environment}-${AWS::AccountId}'
+
+      # Server-side encryption
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
+      # Public access block
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+      # Lifecycle policy for logs
+      LifecycleConfiguration:
+        Rules:
+          - Id: LogRetention
+            Status: Enabled
+            ExpirationInDays: 90
+            Transitions:
+              - TransitionInDays: 30
+                StorageClass: STANDARD_IA
+
+      # Tags
+      Tags:
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: Project
+          Value: OSRP
+        - Key: Purpose
+          Value: Logging
+
+  # ============================================================================
+  # Bucket Policy for Lambda/Mobile Access
+  # ============================================================================
+
+  DataBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DataBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          # Allow Lambda functions to write/read
+          - Sid: AllowLambdaAccess
+            Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+            Resource: !Sub '${DataBucket.Arn}/*'
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+
+          # Deny non-SSL requests
+          - Sid: DenyInsecureTransport
+            Effect: Deny
+            Principal: '*'
+            Action: 's3:*'
+            Resource:
+              - !GetAtt DataBucket.Arn
+              - !Sub '${DataBucket.Arn}/*'
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
+Outputs:
+  DataBucketName:
+    Description: Name of the S3 data bucket
+    Value: !Ref DataBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-DataBucket'
+
+  DataBucketArn:
+    Description: ARN of the S3 data bucket
+    Value: !GetAtt DataBucket.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-DataBucketArn'
+
+  LoggingBucketName:
+    Description: Name of the S3 logging bucket
+    Value: !Ref LoggingBucket
+    Export:
+      Name: !Sub '${AWS::StackName}-LoggingBucket'
+
+  LoggingBucketArn:
+    Description: ARN of the S3 logging bucket
+    Value: !GetAtt LoggingBucket.Arn
+    Export:
+      Name: !Sub '${AWS::StackName}-LoggingBucketArn'
