@@ -102,11 +102,12 @@ Tasks that still need to be completed for the full rebrand and launch.
 - [x] **Purchase domain** ✅
   - osrp.io (primary) ✅
 
-- [ ] **Build landing page**
-  - Use LANDING_PAGE.md as content source
-  - Design mockups
-  - Implement responsive design
-  - Deploy to osrp.io
+- [x] **Build landing page** ✅
+  - Use LANDING_PAGE.md as content source ✅
+  - Professional HTML/CSS design ✅
+  - Implement responsive design ✅
+  - Deploy to osrp.io ✅
+  - GitHub Pages enabled ✅
 
 - [ ] **Documentation site**
   - Convert markdown docs to web format
@@ -118,10 +119,10 @@ Tasks that still need to be completed for the full rebrand and launch.
 
 - [ ] **Prepare for PyPI**
   - Add MANIFEST.in
-  - Add LICENSE file
-  - Add CHANGELOG.md
+  - Add LICENSE file ✅
+  - Add CHANGELOG.md ✅
   - Test package build
-  - Test package installation
+  - Test package installation ✅
 
 - [ ] **Publish to PyPI**
   - Create PyPI account
@@ -252,11 +253,11 @@ Tasks that still need to be completed for the full rebrand and launch.
 - [x] Create GitHub organization ✅
 - [x] Push code to public repo ✅
 - [x] Purchase osrp.io domain ✅
-- [ ] Set up GitHub Pages - In Progress
+- [x] Set up GitHub Pages ✅
 
-### Week 3: Package & Website
+### Week 3: Package & Website (In Progress)
 - [ ] Publish to PyPI
-- [ ] Build landing page
+- [x] Build landing page ✅
 - [ ] Deploy documentation site
 - [ ] Create demo video
 
