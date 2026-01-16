@@ -85,6 +85,11 @@ class StatusViewModel: ObservableObject {
         }
     }
 
+    /// Check if HealthKit is authorized
+    func isHealthKitAuthorized() async -> Bool {
+        return await dataService.isHealthKitAuthorized()
+    }
+
     /// Check connection status
     private func checkConnectionStatus() async -> Bool {
         // Check if we have valid auth token
