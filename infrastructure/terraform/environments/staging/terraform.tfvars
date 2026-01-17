@@ -31,9 +31,15 @@ api_throttle_burst_limit = 2500
 api_throttle_rate_limit  = 5000
 enable_api_logging       = true
 
-# Additional Tags
+# Additional Tags (optional)
+# These tags supplement the mandatory tags (Tool, Project, Environment, ManagedBy, Version)
+# Use these for cost allocation, compliance tracking, and resource management
 additional_tags = {
-  Owner       = "Development Team"
-  CostCenter  = "Research"
-  Compliance  = "PHI"
+  Owner       = "Development Team"        # Team or person responsible
+  CostCenter  = "Research"                # Cost center for billing
+  Compliance  = "PHI"                     # Data classification (PHI, PII, etc.)
+  Department  = "Psychology"              # Academic department
+  # IRB       = "2024-001"                # IRB protocol number (if applicable)
+  # Grant     = "NIH-R01-123456"          # Grant funding this work
+  # StudyPI   = "Dr. Jane Smith"          # Principal investigator
 }

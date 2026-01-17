@@ -153,8 +153,14 @@ variable "enable_api_logging" {
 # Tags
 # ============================================================================
 
+variable "osrp_version" {
+  description = "OSRP CLI version (automatically set by CLI)"
+  type        = string
+  default     = "0.3.0"
+}
+
 variable "additional_tags" {
-  description = "Additional tags to apply to all resources"
+  description = "Additional tags to apply to all resources (e.g., Owner, CostCenter, IRB)"
   type        = map(string)
   default     = {}
 }

@@ -351,6 +351,106 @@ additional_tags = {
 
 ---
 
+## Resource Tagging
+
+### Tagging Strategy
+
+All AWS resources deployed by OSRP are automatically tagged for cost tracking, resource management, and compliance.
+
+### Mandatory Tags (Applied Automatically)
+
+Every resource receives these tags:
+
+| Tag | Value | Purpose |
+|-----|-------|---------|
+| `Tool` | `OSRP` | Identifies resources deployed by OSRP |
+| `Project` | `{study_name}` | Study/project identifier for cost allocation |
+| `Environment` | `{dev\|staging\|prod}` | Environment identifier |
+| `ManagedBy` | `OSRP-CLI` | Tool managing these resources |
+| `Version` | `{osrp_version}` | OSRP version for tracking changes |
+
+These tags are defined in `main.tf` as `common_tags` and automatically applied to all modules.
+
+### Additional Tags (Optional)
+
+You can add custom tags via the `additional_tags` variable:
+
+```hcl
+# In terraform.tfvars
+additional_tags = {
+  Owner       = "john.doe@university.edu"  # Resource owner
+  CostCenter  = "Research-PSY-001"        # Billing cost center
+  IRB         = "2024-001"                # IRB protocol number
+  Grant       = "NIH-R01-123456"          # Funding source
+  StudyPI     = "Dr. Jane Smith"          # Principal investigator
+  Department  = "Psychology"              # Academic department
+  Compliance  = "PHI"                     # Data classification
+}
+```
+
+### Cost Allocation Tags
+
+Enable cost allocation in AWS Billing Console:
+
+1. Open **AWS Billing Console** → **Cost Allocation Tags**
+2. Activate these tags:
+   - `Project`
+   - `Environment`
+   - `Tool`
+   - `Owner` (if using)
+   - `CostCenter` (if using)
+3. Cost reports will be available in 24 hours
+
+**AWS CLI Method**:
+```bash
+aws ce list-cost-allocation-tags
+aws ce update-cost-allocation-tags-status \
+  --cost-allocation-tags-status TagKey=Project,Status=Active
+```
+
+### View Resources by Tag
+
+**AWS Console**:
+1. Go to **Resource Groups & Tag Editor**
+2. Search by tag: `Tool = OSRP`
+3. View all OSRP resources across services
+
+**AWS CLI**:
+```bash
+# Find all OSRP resources
+aws resourcegroupstaggingapi get-resources \
+  --tag-filters Key=Tool,Values=OSRP \
+  --output table
+
+# Filter by study
+aws resourcegroupstaggingapi get-resources \
+  --tag-filters Key=Project,Values=depression-study \
+  --output table
+
+# Filter by environment
+aws resourcegroupstaggingapi get-resources \
+  --tag-filters Key=Environment,Values=prod \
+  --output table
+```
+
+### Tag Validation
+
+Terraform validates tags before deployment:
+- Tag keys must be ≤ 128 characters
+- Tag values must be ≤ 256 characters
+- Keys must match pattern: `^[a-zA-Z0-9+\-=._:/@]+$`
+
+### Best Practices
+
+1. **Always use `additional_tags`** for study-specific metadata
+2. **Include contact information** in `Owner` tag
+3. **Use consistent naming** across all studies
+4. **Document tag usage** in your study protocol
+5. **Review tags regularly** for accuracy
+6. **Enable cost allocation tags** for budget tracking
+
+---
+
 ## Modules
 
 ### DynamoDB Module

@@ -6,13 +6,17 @@ locals {
   name_prefix = "${var.study_name}-${var.environment}"
   account_id  = data.aws_caller_identity.current.account_id
 
+  # Mandatory tags for all OSRP resources
+  # These tags enable cost tracking, resource management, and compliance
   common_tags = merge(
     {
-      Project     = "OSRP"
-      Environment = var.environment
-      ManagedBy   = "Terraform"
+      Tool        = "OSRP"                    # Identifies resources deployed by OSRP
+      Project     = var.study_name            # Study/project identifier for cost allocation
+      Environment = var.environment           # dev, staging, or prod
+      ManagedBy   = "OSRP-CLI"               # Tool managing these resources
+      Version     = var.osrp_version         # OSRP version for tracking changes
     },
-    var.additional_tags
+    var.additional_tags  # User-defined tags (Owner, CostCenter, IRB, etc.)
   )
 }
 
