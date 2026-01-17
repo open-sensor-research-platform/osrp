@@ -115,6 +115,37 @@ struct MainView: View {
                     .shadow(radius: 2)
                     .padding(.horizontal)
 
+                    // Last Upload Card
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Last Upload")
+                            .font(.headline)
+
+                        if let lastUpload = statusViewModel.lastUploadTime {
+                            Text(lastUpload, style: .relative)
+                                .font(.body)
+                                .foregroundColor(.secondary)
+
+                            Text(lastUpload, style: .date)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                                .padding(.top, 4)
+
+                            Text(lastUpload, style: .time)
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                        } else {
+                            Text("Never uploaded")
+                                .font(.body)
+                                .foregroundColor(.secondary)
+                        }
+                    }
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color(.systemBackground))
+                    .cornerRadius(12)
+                    .shadow(radius: 2)
+                    .padding(.horizontal)
+
                     // Control Buttons
                     VStack(spacing: 12) {
                         if statusViewModel.isCollecting {

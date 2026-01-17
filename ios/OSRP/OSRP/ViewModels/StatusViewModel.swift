@@ -15,9 +15,11 @@ class StatusViewModel: ObservableObject {
     @Published var isCollecting: Bool = false
     @Published var isUploadRunning: Bool = false
     @Published var pendingRecords: Int = 0
+    @Published var lastUploadTime: Date? = nil
 
     private let dataService = DataService()
     private let uploadService = UploadService()
+    private let preferences = PreferencesManager.shared
     private var refreshTask: Task<Void, Never>?
 
     init() {
@@ -60,6 +62,9 @@ class StatusViewModel: ObservableObject {
 
         // Get pending records count
         pendingRecords = await dataService.getPendingRecordsCount()
+
+        // Get last upload time
+        lastUploadTime = preferences.lastUploadTime
     }
 
     /// Start data collection
